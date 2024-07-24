@@ -6,17 +6,26 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "lint": "eslint ."
   },
   "dependencies": {
+    "@expo/vector-icons": "^14.0.2",
+    "@react-navigation/native": "^6.1.18",
+    "@react-navigation/stack": "^6.4.1",
     "expo": "~51.0.22",
     "expo-status-bar": "~1.12.1",
+    "metro-react-native-babel-preset": "^0.77.0",
     "react": "18.2.0",
     "react-native": "0.74.3",
-    "react-native-safe-area-context": "^4.10.8"
+    "react-native-gesture-handler": "~2.16.1",
+    "react-native-safe-area-context": "^4.10.8",
+    "react-native-screens": "^3.32.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0"
+    "@babel/core": "^7.20.0",
+    "eslint": "^8.57.0",
+    "eslint-config-expo": "^7.0.0"
   },
   "private": true
 }

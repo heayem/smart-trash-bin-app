@@ -15,12 +15,12 @@ const TeamMembers = [
   { 
     id: "3", 
     title: "Sok Leaphea",
-    image: require('../assets/team/yem_hea.jpg'),
+    image: require('../assets/team/gallery.png'),
   }, 
   { 
     id: "4", 
     title: "Phon Sobon",
-    image: require('../assets/team/tes_sophanna.jpg'),
+    image: require('../assets/team/phon_sobon.jpg'),
   }, 
   { 
     id: "5", 
@@ -30,12 +30,12 @@ const TeamMembers = [
   { 
     id: "6", 
     title: "Teok Yoteav",
-    image: require('../assets/team/yem_hea.jpg'),
+    image: require('../assets/team/gallery.png'),
   }, 
   { 
     id: "7", 
     title: "Yoem Sreypov",
-    image: require('../assets/team/yem_hea.jpg'),
+    image: require('../assets/team/gallery.png'),
   }, 
   { 
     id: "8", 

@@ -15,7 +15,7 @@ function Navigator() {
           name="Home"
           component={Home}
           options={{
-            title: "Smart Trash Bin",
+            title: "Smart Trash Bin AI",
             headerTitleAlign: "center",
           }}
         />

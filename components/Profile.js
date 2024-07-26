@@ -26,6 +26,7 @@ const Profile = ({ name, image, contacts }) => {
           )}
         </View>
       </View>
+
     </View>
   );
 };
@@ -36,6 +37,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginVertical: 8,
     borderRadius: 8,
+
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -51,6 +53,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginTop: 10,
+
   },
   image: {
     width: 50,
@@ -67,3 +70,4 @@ const styles = StyleSheet.create({
 });
 
 export default Profile;
+

@@ -103,6 +103,7 @@ const TeamMembers = [
         telegram: "#",
         github: "#",
     },
+
   },
 ];
 
@@ -125,6 +126,7 @@ const TeamMemberList = () => {
       numColumns={2}
       contentContainerStyle={styles.container}
     />
+
   );
 };
 
@@ -141,3 +143,4 @@ const styles = StyleSheet.create({
 });
 
 export default TeamMemberList;
+

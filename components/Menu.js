@@ -45,6 +45,7 @@ const menuItems = [
   },
 
   {
+
     id: "4",
     iconName: "database",
     name: "Data",
@@ -81,6 +82,7 @@ const menuItems = [
 
 const Menu = () => {
   const navigation = useNavigation();
+
 
   const renderItem = ({ item }) => (
     <MenuItems

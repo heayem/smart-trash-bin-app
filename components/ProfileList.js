@@ -6,86 +6,141 @@ import Profile from './Profile';
 const TeamMembers = [
   {
     id: "1",
-    title: "Dr. Heng Sovannarith",
-    image: require('../assets/team/gallery.png'),
+    name: "Yem Hea",
+    image: require('../assets/team/yem_hea.jpg'),
+    contacts: {
+        facebook: "#",
+        telegram: "#",
+        github: "#",
+    },
   },
   {
     id: "2",
-    title: "Yem Hea",
-    image: require('../assets/team/yem_hea.jpg'),
+    name: "Sok Leaphea",
+    image: require('../assets/team/gallery.png'),
+    contacts: {
+        facebook: "#",
+        telegram: "#",
+        github: "#",
+    },
   },
   {
     id: "3",
-    title: "Sok Leaphea",
-    image: require('../assets/team/gallery.png'),
+    name: "Phon Sobon",
+    image: require('../assets/team/phon_sobon.jpg'),
+    contacts: {
+        facebook: "#",
+        telegram: "#",
+        github: "#",
+    },
   },
   {
     id: "4",
-    title: "Phon Sobon",
-    image: require('../assets/team/phon_sobon.jpg'),
+    name: "Tes Sophanna",
+    image: require('../assets/team/tes_sophanna.jpg'),
+    contacts: {
+        facebook: "#",
+        telegram: "#",
+        github: "#",
+    },
   },
   {
     id: "5",
-    title: "Tes Sophanna",
-    image: require('../assets/team/tes_sophanna.jpg'),
+    name: "Teok Yoteav",
+    image: require('../assets/team/gallery.png'),
+    contacts: {
+        facebook: "#",
+        telegram: "#",
+        github: "#",
+    },
   },
   {
     id: "6",
-    title: "Teok Yoteav",
+    name: "Yoem Sreypov",
     image: require('../assets/team/gallery.png'),
+    contacts: {
+        facebook: "#",
+        telegram: "#",
+        github: "#",
+    },
   },
   {
     id: "7",
-    title: "Yoem Sreypov",
-    image: require('../assets/team/gallery.png'),
+    name: "Uth Narin",
+    image: require('../assets/team/uth_narin.jpg'),
+    contacts: {
+        facebook: "#",
+        telegram: "#",
+        github: "#",
+    },
   },
   {
     id: "8",
-    title: "Uth Narin",
-    image: require('../assets/team/uth_narin.jpg'),
+    name: "Chet Chakriya",
+    image: require('../assets/team/chet_chakriya.jpg'),
+    contacts: {
+        facebook: "#",
+        telegram: "#",
+        github: "#",
+    },
   },
   {
     id: "9",
-    title: "Chet Chakriya",
-    image: require('../assets/team/chet_chakriya.jpg'),
+    name: "Pho Kakada",
+    image: require('../assets/team/pho_kakada.jpg'),
+    contacts: {
+        facebook: "#",
+        telegram: "#",
+        github: "#",
+    },
   },
   {
     id: "10",
-    title: "Pho Kakada",
-    image: require('../assets/team/pho_kakada.jpg'),
-  },
-  {
-    id: "11",
-    title: "Chea Menglim",
+    name: "Chea Menglim",
     image: require('../assets/team/chea_menglim.jpg'),
+    contacts: {
+        facebook: "#",
+        telegram: "#",
+        github: "#",
+    },
+
   },
 ];
 
 const TeamMemberList = () => {
   const renderItem = ({ item }) => (
-    <Profile
-      title={item.title}
-      image={item.image}
-    />
+    <View style={styles.column}>
+      <Profile
+        name={item.name}
+        image={item.image}
+        contacts={item.contacts}
+      />
+    </View>
   );
 
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={TeamMembers}
-        renderItem={renderItem}
-        keyExtractor={item => item.id}
-      />
-    </View>
+    <FlatList
+      data={TeamMembers}
+      renderItem={renderItem}
+      keyExtractor={item => item.id}
+      numColumns={2}
+      contentContainerStyle={styles.container}
+    />
+
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 30,
-    padding: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     backgroundColor: '#f5f5f5',
+  },
+  column: {
+    flex: 1,
+    padding: 8,
   },
 });
 
 export default TeamMemberList;
+

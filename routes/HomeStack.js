@@ -3,6 +3,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import Home from "../screens/Home";
 import Bins from "../screens/Bins";
+import Map from "../screens/Map";
 import AboutUs from "../screens/AbooutUs";
 
 const Stack = createStackNavigator();
@@ -18,6 +19,11 @@ function Navigator() {
             title: "Smart Trash Bin AI",
             headerTitleAlign: "center",
           }}
+        />
+        <Stack.Screen
+          name="Map"
+          component={Map}
+          options={{ title: "MapView", headerTitleAlign: "center" }}
         />
         <Stack.Screen
           name="Bins"

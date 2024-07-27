@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Linking } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons'; // Assuming you are using Expo
+import { FontAwesome } from '@expo/vector-icons';
 
 const Profile = ({ name, image, contacts }) => {
   return (

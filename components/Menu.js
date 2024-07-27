@@ -19,7 +19,7 @@ const menuItems = [
     IconComponent: Entypo,
     boxStyle: { backgroundColor: "white" },
     textStyle: { color: "black" },
-    screen: "AboutUs",
+    screen: "Map",
   },
   {
     id: "2",

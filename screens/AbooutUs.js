@@ -1,6 +1,5 @@
-// screens/AboutUs.js
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import ProfileList from '../components/ProfileList.js';
 
 const AboutUs = () => {

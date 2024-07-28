@@ -1,4 +1,3 @@
-// components/TeamMemberList.js
 import React from 'react';
 import { View, FlatList, StyleSheet } from 'react-native';
 import Profile from './Profile';
@@ -141,6 +140,5 @@ const styles = StyleSheet.create({
     padding: 8,
   },
 });
-
 export default TeamMemberList;
 

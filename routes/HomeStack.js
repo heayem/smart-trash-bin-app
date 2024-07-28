@@ -5,6 +5,8 @@ import Home from "../screens/Home";
 import Bins from "../screens/Bins";
 import Map from "../screens/Map";
 import AboutUs from "../screens/AbooutUs";
+import Schedule from "../screens/Schedule";
+import DayDetails from "../screens/DayDetails";
 
 const Stack = createStackNavigator();
 
@@ -29,6 +31,15 @@ function Navigator() {
           name="Bins"
           component={Bins}
           options={{ title: "Bins", headerTitleAlign: "center" }}
+        />
+        <Stack.Screen
+          name="Schedule"
+          component={Schedule}
+          options={{ title: "Schedule", headerTitleAlign: "center" }}
+        />
+        <Stack.Screen
+          name="DayDetails"
+          component={DayDetails}
         />
         <Stack.Screen
           name="AboutUs"

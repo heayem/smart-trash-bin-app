@@ -22,6 +22,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "514d5d17-f240-42ea-896f-d43815f1f3d6"
+      }
+    },
+    "owner": "sok-leaphea"
   }
 }

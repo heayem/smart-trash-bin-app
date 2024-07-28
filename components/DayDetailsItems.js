@@ -80,7 +80,7 @@ export const MapButton = ({ navigation }) => (
   <View style={styles.buttonContainer}>
     <Button
       title="Go to Map"
-      onPress={() => navigation.navigate('Map')} // Assuming 'MapScreen' is the name of your map screen
+      onPress={() => navigation.navigate('Map')} 
       color="#007AFF"
     />
   </View>

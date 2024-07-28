@@ -8,15 +8,16 @@ import Button from "../components/MapComponent/Button";
 import ErrorMessage from "../components/MapComponent/ErrorMessage";
 import RouteSummary from "../components/MapComponent/RouteSummary";
 import CustomMarker from "../components/MapComponent/CustomMarker";
-import * as Location from "expo-location";
-import axios from "axios";
-import haversine from "haversine";
-
-const GOOGLE_MAPS_APIKEY = "AIzaSyAKrvPTDE_YSFrbOLlwaIi-iM9ge-Pchz0";
+import { fetchAllRouteCoordinates } from "../services/routeService/aiSuggestion";
+import {
+  fetchUserLocation,
+  fetchRoute,
+  calculateRouteToNearestMarker,
+} from "../services/mapService";
 
 const Map = () => {
   const [mapRegion, setMapRegion] = useState({
-    latitude: 11.5561, 
+    latitude: 11.5561,
     longitude: 104.9285,
     latitudeDelta: 0.05,
     longitudeDelta: 0.05,
@@ -28,7 +29,7 @@ const Map = () => {
   const [mapType, setMapType] = useState("standard");
   const [markers, setMarkers] = useState([
     {
-      latitude: 11.5681, 
+      latitude: 11.5681,
       longitude: 104.8921,
       title: "RUPP",
       description: "Royal University of Phnom Penh",
@@ -37,9 +38,10 @@ const Map = () => {
       color: "red",
       size: 80,
       iconUri: require("../assets/Map/bin.jpg"),
+      binLevel: 90,
     },
     {
-      latitude: 11.5689, 
+      latitude: 11.5689,
       longitude: 104.8932,
       title: "IFL",
       description: "Institute of Foreign Languages",
@@ -48,9 +50,10 @@ const Map = () => {
       color: "blue",
       size: 80,
       iconUri: require("../assets/Map/bin.jpg"),
+      binLevel: 70,
     },
     {
-      latitude: 11.5681, 
+      latitude: 11.5681,
       longitude: 104.8947,
       title: "SETEC",
       description: "Setec Institute",
@@ -59,188 +62,109 @@ const Map = () => {
       color: "green",
       size: 80,
       iconUri: require("../assets/Map/bin.jpg"),
+      binLevel: 90,
     },
   ]);
-  
 
   const [routeCoordinates, setRouteCoordinates] = useState([]);
   const [calculating, setCalculating] = useState(false);
   const [infoMessage, setInfoMessage] = useState("");
 
-  const fetchUserLocation = async () => {
-    setLoading(true);
-    try {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        setError("Permission to access location was denied.");
-        return;
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const location = await fetchUserLocation();
+        setUserLocation(location);
+        setMapRegion({
+          latitude: location.latitude,
+          longitude: location.longitude,
+          latitudeDelta: 0.0922,
+          longitudeDelta: 0.0421,
+        });
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
-      let location = await Location.getCurrentPositionAsync({
-        enableHighAccuracy: true,
-      });
-      const { latitude, longitude } = location.coords;
-      setUserLocation({
-        latitude,
-        longitude,
-        title: "Your Location",
-        description: "This is where you are",
-      });
-      setMapRegion({
-        latitude,
-        longitude,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
-      });
-    } catch (err) {
-      setError("Error fetching location. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  const fetchRoute = async (origin, destination) => {
-    const originStr = `${origin.latitude},${origin.longitude}`;
-    const destStr = `${destination.latitude},${destination.longitude}`;
-    const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${originStr}&destination=${destStr}&key=${GOOGLE_MAPS_APIKEY}`;
+    init();
+  }, []);
 
-    try {
-      const response = await axios.get(url);
-      const { routes } = response.data;
-      if (routes.length > 0) {
-        const points = routes[0].overview_polyline.points;
-        const decodedPoints = decodePolyline(points);
-        return decodedPoints;
-      } else {
-        setError("No route found.");
-        return [];
-      }
-    } catch (err) {
-      setError("Error fetching route. Please try again later.");
-      return [];
-    }
-  };
-
-  const decodePolyline = (encoded) => {
-    let points = [];
-    let index = 0;
-    let lat = 0;
-    let lng = 0;
-
-    while (index < encoded.length) {
-      let b;
-      let shift = 0;
-      let result = 0;
-      do {
-        b = encoded.charCodeAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-      let dlat = result & 1 ? ~(result >> 1) : result >> 1;
-      lat += dlat;
-
-      shift = 0;
-      result = 0;
-      do {
-        b = encoded.charCodeAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-      let dlng = result & 1 ? ~(result >> 1) : result >> 1;
-      lng += dlng;
-
-      points.push({
-        latitude: lat / 1e5,
-        longitude: lng / 1e5,
-      });
-    }
-    return points;
-  };
-
-  const calculateRoutes = async () => {
+  const handleAiSuggestion = async () => {
     if (!userLocation || markers.length === 0) return;
 
     setCalculating(true);
     setLoading(true);
-    let remainingMarkers = [...markers];
-    let currentLocation = userLocation;
-    let allRouteCoordinates = [];
-    let segmentColors = [];
-    let routeSummary = [];
-
-    while (remainingMarkers.length > 0) {
-      let nearestMarker = remainingMarkers.reduce(
-        (nearest, marker) => {
-          const distance = haversine(currentLocation, marker, {
-            unit: "meter",
-          });
-          if (distance < nearest.distance) {
-            return { marker, distance };
-          }
-          return nearest;
-        },
-        { marker: null, distance: Infinity }
-      );
-
-      if (nearestMarker.marker) {
-        const route = await fetchRoute(currentLocation, nearestMarker.marker);
-        allRouteCoordinates.push({
-          coordinates: route,
-          color: segmentColors.length % 2 === 0 ? "#FF0000" : "#0000FF",
-        });
-
-        routeSummary.push(
-          `From ${currentLocation.title} to ${nearestMarker.marker.title}`
-        );
-
-        currentLocation = nearestMarker.marker;
-
-        remainingMarkers = remainingMarkers.filter(
-          (marker) => marker !== nearestMarker.marker
-        );
-      } else {
-        break;
-      }
+    try {
+      const { allRouteCoordinates, routeSummary } =
+        await fetchAllRouteCoordinates(userLocation, markers);
+      console.log(allRouteCoordinates);
+      setRouteCoordinates(allRouteCoordinates);
+      console.log(allRouteCoordinates);
+      setInfoMessage(routeSummary.join("\n"));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setCalculating(false);
+      setLoading(false);
     }
-
-    setRouteCoordinates(allRouteCoordinates);
-    setInfoMessage(routeSummary.join("\n"));
-    setCalculating(false);
-    setLoading(false);
   };
 
-  const calculateRouteToMarker = async (marker) => {
+  const handleCalculateRoutes = async () => {
+    if (!userLocation || markers.length === 0) return;
+
+    setCalculating(true);
+    setLoading(true);
+    try {
+      const { allRouteCoordinates, routeSummary } =
+        await calculateRouteToNearestMarker(userLocation, markers);
+      setRouteCoordinates(allRouteCoordinates);
+      setInfoMessage(routeSummary.join("\n"));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setCalculating(false);
+      setLoading(false);
+    }
+  };
+
+  const handleCalculateRouteToMarker = async (marker) => {
     if (!userLocation) return;
 
     setCalculating(true);
-    const route = await fetchRoute(userLocation, marker);
-    setRouteCoordinates([
-      {
-        coordinates: route,
-        color: "#FF0000",
-      },
-    ]);
-    setInfoMessage(
-      `Route to ${marker.title}:\nFrom your location to ${marker.title}`
-    );
-    setCalculating(false);
+    try {
+      const route = await fetchRoute(userLocation, marker);
+      setRouteCoordinates([
+        {
+          coordinates: route,
+          color: "#FF0000",
+        },
+      ]);
+      setInfoMessage(
+        `Route to ${marker.title}:\nFrom your location to ${marker.title}`
+      );
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setCalculating(false);
+    }
   };
 
-  const cancelCalculation = () => {
+  const handleCancelCalculation = () => {
     setCalculating(false);
     setRouteCoordinates([]);
     setInfoMessage("");
   };
-  const toggleMapType = () => {
+
+  const handleToggleMapType = () => {
     setMapType((prevType) =>
       prevType === "standard" ? "satellite" : "standard"
     );
   };
 
-  useEffect(() => {
-    fetchUserLocation();
-  }, []);
-
   if (error) return <ErrorMessage message={error} />;
+
   if (loading) return <Loading />;
 
   return (
@@ -259,7 +183,7 @@ const Map = () => {
               latitude: marker.latitude,
               longitude: marker.longitude,
             }}
-            onPress={() => calculateRouteToMarker(marker)}
+            onPress={() => handleCalculateRouteToMarker(marker)}
           >
             <CustomMarker iconUri={marker.iconUri} size={52} />
 
@@ -308,18 +232,26 @@ const Map = () => {
             />
           ))}
       </MapView>
-      <View style={styles.buttonContainer}>
+      <View style={styles.buttonsContainer}>
+        <Button
+          Icon={MaterialCommunityIcons}
+          onPress={handleAiSuggestion}
+          style={styles.aiButton}
+          name="robot-outline"
+          size={28}
+          color="white"
+        />
         <Button
           Icon={FontAwesome6}
-          onPress={calculateRoutes}
-          style={styles.button}
+          onPress={handleCalculateRoutes}
+          style={styles.mapButton}
           name="route"
           size={28}
           color="white"
         />
         <Button
           Icon={MaterialCommunityIcons}
-          onPress={cancelCalculation}
+          onPress={handleCancelCalculation}
           style={styles.cancelButton}
           name="map-marker-off"
           size={28}
@@ -327,14 +259,13 @@ const Map = () => {
         />
         <Button
           Icon={MaterialCommunityIcons}
-          onPress={toggleMapType}
+          onPress={handleToggleMapType}
           style={styles.mapTypeButton}
           name="map-outline"
           size={28}
           color="white"
         />
       </View>
-
       {infoMessage && <RouteSummary message={infoMessage} />}
     </View>
   );
@@ -347,56 +278,32 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
   },
+  buttonsContainer: {
+    position: "absolute",
+    bottom: 10,
+    left: 10,
+    right: 10,
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 8,
+  },
   mapTypeButton: {
     backgroundColor: "#007BFF",
     borderRadius: 10,
     padding: 10,
     alignItems: "center",
   },
-  calloutContainer: {
-    width: 200,
+  aiButton: {
+    backgroundColor: "#007BFF",
+    borderRadius: 10,
     padding: 10,
-    backgroundColor: "white",
-    borderRadius: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
+    alignItems: "center",
   },
-  calloutTitle: {
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  calloutDescription: {
-    fontSize: 14,
-    color: "#666",
-  },
-  iconContainer: {
-    marginRight: 10,
-  },
-  calloutTextContainer: {
-    flex: 1,
-  },
-  buttonContainer: {
-    position: "absolute",
-    bottom: 10,
-    left: 10,
-    right: 10,
-    flexDirection: "row",
-    gap: 8,
-    justifyContent: "center",
-  },
-  button: {
+  mapButton: {
     backgroundColor: "#007BFF",
     padding: 10,
     borderRadius: 10,
-    flexDirection: "row",
     alignItems: "center",
-  },
-  buttonText: {
-    color: "white",
-    marginLeft: 5,
   },
   cancelButton: {
     backgroundColor: "#FF0000",

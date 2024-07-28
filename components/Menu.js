@@ -76,7 +76,7 @@ const menuItems = [
     IconComponent: FontAwesome6,
     boxStyle: { backgroundColor: "white" },
     textStyle: { color: "black" },
-    screen: "TestNotification",
+    screen: "AboutUs",
   },
 ];
 

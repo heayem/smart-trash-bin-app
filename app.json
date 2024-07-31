@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "smart-trash-bin",
-    "slug": "smart-trash-bin",
+    "slug": "bin",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -18,16 +18,17 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.headev.bin"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
-        "projectId": "514d5d17-f240-42ea-896f-d43815f1f3d6"
+        "projectId": "f34fb54d-d46b-450e-bbf9-bf95ce20b10b"
       }
     },
-    "owner": "sok-leaphea"
+    "owner": "headev"
   }
 }

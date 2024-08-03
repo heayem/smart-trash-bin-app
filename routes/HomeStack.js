@@ -7,6 +7,7 @@ import Map from "../screens/Map";
 import AboutUs from "../screens/AbooutUs";
 import Schedule from "../screens/Schedule";
 import DayDetails from "../screens/DayDetails";
+import ScheduleForm from "../screens/ScheduleForm";
 
 const Stack = createStackNavigator();
 
@@ -40,6 +41,12 @@ function Navigator() {
         <Stack.Screen
           name="DayDetails"
           component={DayDetails}
+          options={{ title: "Schedule", headerTitleAlign: "center" }}
+        />
+        <Stack.Screen
+          name="ScheduleForm"
+          component={ScheduleForm}
+          options={{ title: "Schedule form", headerTitleAlign: "center" }}
         />
         <Stack.Screen
           name="AboutUs"

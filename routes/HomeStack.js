@@ -7,6 +7,7 @@ import Map from "../screens/Map";
 import AboutUs from "../screens/AbooutUs";
 import Schedule from "../screens/Schedule";
 import DayDetails from "../screens/DayDetails";
+import TestAPI from "../screens/TestAPI";
 
 const Stack = createStackNavigator();
 
@@ -21,6 +22,11 @@ function Navigator() {
             title: "Smart Trash Bin AI",
             headerTitleAlign: "center",
           }}
+        />
+        <Stack.Screen
+          name="TestAPI"
+          component={TestAPI}
+          options={{ title: "TestAPI", headerTitleAlign: "center" }}
         />
         <Stack.Screen
           name="Map"

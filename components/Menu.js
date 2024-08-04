@@ -30,7 +30,7 @@ const menuItems = [
     IconComponent: FontAwesome5,
     boxStyle: { backgroundColor: "white" },
     textStyle: { color: "black" },
-    screen: "AboutUs",
+    screen: "Bins",
   },
   {
     id: "3",
@@ -76,7 +76,7 @@ const menuItems = [
     IconComponent: FontAwesome6,
     boxStyle: { backgroundColor: "white" },
     textStyle: { color: "black" },
-    screen: "AboutUs",
+    screen: "TestAPI",
   },
 ];
 

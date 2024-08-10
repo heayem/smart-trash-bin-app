@@ -1,21 +1,28 @@
 {
   "build": {
-    "preview": {
+    "development": {
       "android": {
         "buildType": "apk"
+      },
+      "ios": {
+        "buildType": "simulator"
       }
     },
-    "preview2": {
+    "production": {
       "android": {
-        "gradleCommand": ":app:assembleRelease"
+        "buildType": "aab"
+      },
+      "ios": {
+        "buildType": "archive"
       }
     },
-    "preview3": {
-      "developmentClient": true
-    },
-    "preview4": {
-      "distribution": "internal"
-    },
-    "production": {}
+    "smart bin AI": {
+      "android": {
+        "buildType": "apk" 
+      },
+      "ios": {
+        "buildType": "archive"
+      }
+    }
   }
 }

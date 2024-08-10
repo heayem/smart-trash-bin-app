@@ -1,12 +1,13 @@
 import React from 'react';
-import { View,Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import Bins from '../components/BinList';
 
-const Bins =()=>{
-    return(
-        <View>
-            <Text>Smart Trash Bin</Text>
+const Bin = () => {
+    return (
+        <View >
+          <Bins />
         </View>
-    )
-}
+      );
+};
 
-export default Bins;
+export default Bin;

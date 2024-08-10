@@ -8,19 +8,19 @@ const TeamMembers = [
     name: "Yem Hea",
     image: require('../assets/team/yem_hea.jpg'),
     contacts: {
-        facebook: "#",
-        telegram: "#",
-        github: "#",
+        facebook: "https://www.facebook.com/yem.hea.54",
+        telegram: "https://t.me/Yem_hea",
+        github: "https://github.com/heayem",
     },
   },
   {
     id: "2",
     name: "Sok Leaphea",
-    image: require('../assets/team/gallery.png'),
+    image: require('../assets/team/sok_leaphea.jpg'),
     contacts: {
-        facebook: "#",
-        telegram: "#",
-        github: "#",
+        facebook: "https://www.facebook.com/profile.php?id=100069968826197",
+        telegram: "https://t.me/Ph_ea",
+        github: "https://github.com/sok-leaphea",
     },
   },
   {
@@ -46,7 +46,7 @@ const TeamMembers = [
   {
     id: "5",
     name: "Teok Yoteav",
-    image: require('../assets/team/gallery.png'),
+    image: require('../assets/team/teok_yoteav.jpg'),
     contacts: {
         facebook: "#",
         telegram: "#",
@@ -56,7 +56,7 @@ const TeamMembers = [
   {
     id: "6",
     name: "Yoem Sreypov",
-    image: require('../assets/team/gallery.png'),
+    image: require('../assets/team/yoem_sreypov.jpg'),
     contacts: {
         facebook: "#",
         telegram: "#",
@@ -70,7 +70,7 @@ const TeamMembers = [
     contacts: {
         facebook: "#",
         telegram: "#",
-        github: "#",
+        github: "https://github.com/Uth-Narin",
     },
   },
   {

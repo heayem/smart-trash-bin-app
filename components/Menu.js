@@ -54,7 +54,7 @@ const menuItems = [
     IconComponent: AntDesign,
     boxStyle: { backgroundColor: "white" },
     textStyle: { color: "black" },
-    screen: "AboutUs",
+    screen: "BinData",
   },
   {
     id: "5",

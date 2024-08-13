@@ -15,7 +15,7 @@ export default function App() {
 
     // Set up notification listeners
     const notificationSubscription = Notifications.addNotificationReceivedListener(notification => {
-      console.log('Notification received:', notification);
+      // console.log('Notification received:', notification);
     });
 
     const responseSubscription = Notifications.addNotificationResponseReceivedListener(response => {

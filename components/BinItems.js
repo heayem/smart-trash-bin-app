@@ -1,22 +1,21 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
 
-const BinItems = ({ label, firstValue, legends }) => {
-    // Calculate the second value as 100 - firstValue
+const BinItems = ({ label, firstValue, legends, onLegendPress }) => {
     const secondValue = 100 - firstValue;
-
-    // Create the data array with the calculated values
     const data = [
         { value: firstValue, color: legends[0].color },
         { value: secondValue, color: 'white' }
     ];
 
-    const renderLegend = (text, color) => (
-        <View style={styles.legendContainer}>
-            <View style={[styles.legendColor, { backgroundColor: color || 'white' }]} />
-            <Text style={styles.legendText}>{text || ''}</Text>
-        </View>
+    const renderLegend = (text, color, index) => (
+        <TouchableOpacity key={index} onPress={onLegendPress}>
+            <View style={styles.legendContainer}>
+                <View style={[styles.legendColor, { backgroundColor: color || 'white' }]} />
+                <Text style={styles.legendText}>{text || ''}</Text>
+            </View>
+        </TouchableOpacity>
     );
 
     return (
@@ -76,6 +75,7 @@ const styles = StyleSheet.create({
     },
     legendContainer: {
         flexDirection: 'row',
+        alignItems: 'center',
         marginBottom: 12,
     },
     legendColor: {

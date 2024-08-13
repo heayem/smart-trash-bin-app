@@ -1,7 +1,6 @@
 import { database, ref, get, set, update, remove, onValue } from '../../firebaseConfig'; 
 
 class BinService {
-  // Fetch data
   static async fetchData(binId) {
     try {
       const dbRef = ref(database, `trash-bin-database/${binId}`);
@@ -17,7 +16,6 @@ class BinService {
     }
   }
 
-  // Get all data
   static async getAll(path) {
     try {
       const dbRef = ref(database, path);
@@ -33,7 +31,6 @@ class BinService {
     }
   }
 
-  // Create or update data
   static async createOrUpdateData(binId, data) {
     try {
       const dbRef = ref(database, `trash-bin-database/${binId}`);
@@ -44,7 +41,6 @@ class BinService {
     }
   }
 
-  // Update data
   static async updateData(binId, data) {
     try {
       const dbRef = ref(database, `trash-bin-database/${binId}`);
@@ -55,7 +51,6 @@ class BinService {
     }
   }
 
-  // Delete data
   static async deleteData(binId) {
     try {
       const dbRef = ref(database, `trash-bin-database/${binId}`);
@@ -66,7 +61,6 @@ class BinService {
     }
   }
 
-  // Listen for real-time updates
   static listenForData(binId, callback) {
     try {
       const dbRef = ref(database, `trash-bin-database/${binId}`);

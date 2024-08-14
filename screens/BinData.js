@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 import BinService from '../services/BinService/binService'; 
+import Loading from "../components/MapComponent/Loading";
 
 const BinData = () => {
   const [binData, setBinData] = useState([]);
@@ -14,7 +15,7 @@ const BinData = () => {
         if (result.success) {
           const bins = Object.keys(result.data || {}).map(key => ({ id: key, ...result.data[key] }));
           setBinData(bins);
-          console.log('Fetched Bin Data:', bins);
+          
         } else {
           setError(result.message);
         }
@@ -29,7 +30,7 @@ const BinData = () => {
 
     const handleRealTimeUpdate = (update) => {
       if (update.success) {
-        console.log('Real-time update:', update.data);
+        
       } else {
         setError(update.message);
       }
@@ -43,11 +44,11 @@ const BinData = () => {
   }, []);
 
   if (loading) {
-    return <Text>Loading...</Text>;
+    return <Loading />;
   }
 
   if (error) {
-    return <Text>Error: {error}</Text>;
+    return Alert.alert('Error', error, [{ text: 'OK' }]);
   }
 
   return (

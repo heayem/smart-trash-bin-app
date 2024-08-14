@@ -3,13 +3,14 @@ import { ScrollView, Text, StyleSheet } from 'react-native';
 import BinItems from '../components/BinItems';
 import { getDatabase, ref, onValue, off } from 'firebase/database'; 
 import { database } from '../firebaseConfig'; 
-import { useNavigation } from '@react-navigation/native'; // Import useNavigation
+import { useNavigation } from '@react-navigation/native'; 
+import Loading from "../components/MapComponent/Loading";
 
-const Bins = () => {
+const BinList = () => {
   const [binData, setBinData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const navigation = useNavigation(); // Initialize navigation
+  const navigation = useNavigation(); 
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -27,7 +28,7 @@ const Bins = () => {
           onlyOnce: false, 
         });
       } catch (error) {
-        setError(error.message);
+        setError('Something went wrong!');
       } finally {
         setLoading(false);
       }
@@ -51,16 +52,16 @@ const Bins = () => {
     };
   }, []);
 
-  const handleLocationPress = (bin) => {
+  const handleLocationPress = () => {
     navigation.navigate('Map');
   };
 
   if (loading) {
-    return <Text style={styles.loadingText}>Loading...</Text>;
+    return <Loading />;
   }
   
   if (error) {
-    return <Text style={styles.errorText}>Error: {error}</Text>;
+    return Alert.alert('Error', error, [{ text: 'OK' }]);
   }
   
   return (
@@ -75,7 +76,7 @@ const Bins = () => {
               { text: `Level`, color: 'orange' },
               { text: `Location`, color: 'red' }
             ]}
-            onLegendPress={() => handleLocationPress(bin)} // Handle legend press
+            onLegendPress={() => handleLocationPress()} 
           />
         ))
       ) : (
@@ -92,19 +93,6 @@ const styles = StyleSheet.create({
     gap: 20,
     backgroundColor: '#f5f5f5',
   },
-  loadingText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'center',
-    marginTop: 20,
-  },
-  errorText: {
-    fontSize: 16,
-    color: 'red',
-    textAlign: 'center',
-    marginTop: 20,
-  },
   noDataText: {
     fontSize: 16,
     color: '#777',
@@ -113,4 +101,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Bins;
+export default BinList;

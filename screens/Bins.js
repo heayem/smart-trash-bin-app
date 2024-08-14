@@ -1,13 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Bins from '../components/BinList';
+import BinList from '../components/BinList';
 
-const Bin = () => {
+const Bins = () => {
     return (
         <View >
-          <Bins />
+          <BinList />
         </View>
       );
 };
 
-export default Bin;
+export default Bins;

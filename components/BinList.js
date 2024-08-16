@@ -4,7 +4,7 @@ import BinItems from '../components/BinItems';
 import { getDatabase, ref, onValue, off } from 'firebase/database'; 
 import { database } from '../firebaseConfig'; 
 import { useNavigation } from '@react-navigation/native'; 
-import Loading from "../components/MapComponent/Loading";
+import Loading from "./Loading";
 
 const BinList = () => {
   const [binData, setBinData] = useState([]);

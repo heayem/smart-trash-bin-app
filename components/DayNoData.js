@@ -1,18 +1,18 @@
 import React from "react";
 import { View, Text, Button, StyleSheet } from "react-native";
 
-const NoData = ({ refresh, day }) => {
+const DayNoData = ({ fetchSchedule, day }) => {
   return (
     <View style={styles.noDataContainer}>
       <Text style={styles.noDataText}>Oops! No data available.</Text>
       {day && (
-        <Button title="Refresh" onPress={() => refresh(day)} color="#007AFF" />
+        <Button title="Refresh" onPress={() => fetchSchedule(day)} color="#007AFF" />
       )}
     </View>
   );
 };
 
-export default NoData;
+export default DayNoData;
 
 const styles = StyleSheet.create({
   noDataContainer: {

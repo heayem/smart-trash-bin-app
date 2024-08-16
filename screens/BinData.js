@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 import BinService from '../services/BinService/binService'; 
-import Loading from "../components/MapComponent/Loading";
+import Loading from "../components/Loading";
 
 const BinData = () => {
   const [binData, setBinData] = useState([]);

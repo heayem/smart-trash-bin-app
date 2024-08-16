@@ -3,7 +3,7 @@ import MapView, { Marker, Polyline, Callout } from "react-native-maps";
 import { FontAwesome6, MaterialCommunityIcons } from "@expo/vector-icons";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import { StyleSheet, View, Text } from "react-native";
-import Loading from "../components/MapComponent/Loading";
+import Loading from "../components/Loading";
 import Button from "../components/MapComponent/Button";
 import ErrorMessage from "../components/MapComponent/ErrorMessage";
 import RouteSummary from "../components/MapComponent/RouteSummary";

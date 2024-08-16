@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { View, Text, Button, StyleSheet, FlatList, Alert } from "react-native";
 import ScheduleService from "../services/ScheduleService/ScheduleService";
 import { formatTimeString } from "../Helper/TimeConvert";
-import Loading from "../components/MapComponent/Loading";
-import NoData from "./NoData";
+import Loading from "./Loading";
+import DayNoData from "./DayNoData";
 
 export const Schedule = ({ day, navigation }) => {
   const [schedule, setSchedule] = useState([]);
@@ -69,7 +69,7 @@ export const Schedule = ({ day, navigation }) => {
   }
 
   if (schedule.length === 0) {
-    return <NoData fetchSchedule={fetchSchedule} day={day} />;
+    return <DayNoData fetchSchedule={fetchSchedule} day={day} />;
   }
 
   return (

@@ -1,86 +1,112 @@
-import React from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
-
-const dayConfig = {
-  Monday: {
-    startTime: '5:00 AM',
-    mainEvent: 'Collect Trash',
-    mainDescription: '5:00 AM - Collect trash',
-    additionalEvents: [{ title: 'Meeting', description: '4:00 PM - Team meeting' }],
-  },
-  Tuesday: {
-    startTime: '6:00 AM',
-    mainEvent: 'Collect Trash',
-    mainDescription: '6:00 AM - Collect trash',
-    additionalEvents: [{ title: 'Inspection', description: '3:00 PM - Equipment inspection' }],
-  },
-  Wednesday: {
-    startTime: '6:00 AM',
-    mainEvent: 'Collect Trash',
-    mainDescription: '6:00 AM - Collect trash',
-    additionalEvents: [{ title: 'Inspection', description: '3:00 PM - Equipment inspection' }],
-  },
-  Thursday: {
-    startTime: '6:00 AM',
-    mainEvent: 'Collect Trash',
-    mainDescription: '6:00 AM - Collect trash',
-    additionalEvents: [{ title: 'Inspection', description: '3:00 PM - Equipment inspection' }],
-  },
-  Friday: {
-    startTime: '6:00 AM',
-    mainEvent: 'Collect Trash',
-    mainDescription: '6:00 AM - Collect trash',
-    additionalEvents: [{ title: 'Inspection', description: '3:00 PM - Equipment inspection' }],
-  },
-  Saturday: {
-    startTime: '6:00 AM',
-    mainEvent: 'Collect Trash',
-    mainDescription: '6:00 AM - Collect trash',
-    additionalEvents: [{ title: 'Inspection', description: '3:00 PM - Equipment inspection' }],
-  },
-  Sunday: {
-    startTime: '7:00 AM',
-    mainEvent: 'Collect Trash',
-    mainDescription: '7:00 AM - Collect trash',
-    additionalEvents: [{ title: 'Maintenance', description: '5:00 PM - Vehicle maintenance' }],
-  },
-};
+import React, { useState, useEffect } from "react";
+import { View, Text, Button, StyleSheet, FlatList, Alert } from "react-native";
+import ScheduleService from "../services/ScheduleService/ScheduleService";
+import { formatTimeString } from "../Helper/TimeConvert";
+import Loading from "../components/MapComponent/Loading";
+import NoData from "./NoData";
 
 export const Schedule = ({ day, navigation }) => {
-  const config = dayConfig[day] || {};
-  const { startTime, mainEvent, mainDescription, additionalEvents } = config;
+  const [schedule, setSchedule] = useState([]);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchSchedule(day);
+  }, [day]);
+
+  const fetchSchedule = async (day) => {
+    setLoading(true);
+    try {
+      const result = await ScheduleService.getAll();
+      if (result.success) {
+        const daySchedule = result.data
+          ? transformSchedule(result.data[day])
+          : [];
+        setSchedule(daySchedule);
+      } else {
+        setError(result.message || "Error fetching schedule");
+      }
+    } catch (err) {
+      // Check if the error is related to network issues
+      if (err.message.includes("Network Error")) {
+        setError(
+          "Network connection lost. Please check your internet connection."
+        );
+      } else {
+        setError("Error fetching schedule: " + err.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const transformSchedule = (scheduleData) => {
+    if (!scheduleData) return [];
+
+    const keys = Object.keys(scheduleData);
+    return keys
+      .filter((key) => key.startsWith("title-"))
+      .map((key) => {
+        const index = key.split("-")[1];
+        return {
+          title: scheduleData[`title-${index}`] || "No title",
+          description: scheduleData[`description-${index}`] || "No description",
+          time: scheduleData[`time-${index}`] || "No time",
+        };
+      });
+  };
+
+  useEffect(() => {
+    if (error) {
+      Alert.alert("Error", error, [
+        { text: "OK", onPress: () => navigation.goBack() },
+      ]);
+    }
+  }, [error]);
+
+  if (loading) {
+    return <Loading />;
+  }
+
+  if (schedule.length === 0) {
+    return <NoData fetchSchedule={fetchSchedule} day={day} />;
+  }
 
   return (
-    <>
-      <MainEvent title={mainEvent} description={mainDescription} navigation={navigation} />
-      {additionalEvents && additionalEvents.map((event, index) => (
-        <Event key={index} title={event.title} description={event.description} />
-      ))}
-    </>
+    <View>
+      <FlatList
+        data={schedule}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => (
+          <MainEvent
+            title={item.title}
+            description={item.description}
+            time={item.time}
+            navigation={navigation}
+          />
+        )}
+      />
+    </View>
   );
 };
 
-export const MainEvent = ({ title, description, navigation }) => (
+const MainEvent = ({ title, description, time, navigation }) => (
   <View style={styles.scheduleContainer}>
     <Text style={styles.eventTitle}>{title}</Text>
     <Text style={styles.eventDescription}>{description}</Text>
-    <Text style={styles.mapDescription}>Check the map for detailed routes and bins to collect.</Text>
+    <Text style={styles.eventTime}>{formatTimeString(time)}</Text>
+    <Text style={styles.mapDescription}>
+      Check the map for detailed routes and bins to collect.
+    </Text>
     <MapButton navigation={navigation} />
   </View>
 );
 
-export const Event = ({ title, description }) => (
-  <View style={styles.scheduleContainer}>
-    <Text style={styles.eventTitle}>{title}</Text>
-    <Text style={styles.eventDescription}>{description}</Text>
-  </View>
-);
-
-export const MapButton = ({ navigation }) => (
+const MapButton = ({ navigation }) => (
   <View style={styles.buttonContainer}>
     <Button
       title="Go to Map"
-      onPress={() => navigation.navigate('Map')} 
+      onPress={() => navigation.navigate("Map")}
       color="#007AFF"
     />
   </View>
@@ -90,9 +116,9 @@ const styles = StyleSheet.create({
   scheduleContainer: {
     marginBottom: 20,
     padding: 15,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 10,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 10,
@@ -100,22 +126,27 @@ const styles = StyleSheet.create({
   },
   eventTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
-    color: '#007AFF',
+    color: "#007AFF",
   },
   eventDescription: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
+    marginBottom: 10,
+  },
+  eventTime: {
+    fontSize: 16,
+    color: "#333",
     marginBottom: 10,
   },
   mapDescription: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
     marginBottom: 10,
   },
   buttonContainer: {
     borderRadius: 10,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
 });

@@ -28,12 +28,12 @@ function Navigator() {
         <Stack.Screen
           name="TestAPI"
           component={TestAPI}
-          options={{ title: "TestAPI", headerTitleAlign: "center" }}
+          options={{ title: "Test API", headerTitleAlign: "center" }}
         />
         <Stack.Screen
           name="Map"
           component={Map}
-          options={{ title: "MapView", headerTitleAlign: "center" }}
+          options={{ title: "Map View", headerTitleAlign: "center" }}
         />
         <Stack.Screen
           name="Bins"
@@ -58,7 +58,7 @@ function Navigator() {
         <Stack.Screen
           name="AboutUs"
           component={AboutUs}
-          options={{ title: "ABOUT US", headerTitleAlign: "center" }}
+          options={{ title: "About Us", headerTitleAlign: "center" }}
         />
         <Stack.Screen
           name="BinData"

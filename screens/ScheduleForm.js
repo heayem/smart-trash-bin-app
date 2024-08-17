@@ -8,10 +8,13 @@ import {
   StyleSheet,
   ScrollView,
   Platform,
+  Alert,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import ScheduleService from "../services/ScheduleService/ScheduleService";
+
 
 const ScheduleForm = () => {
   const [day, setDay] = useState("");
@@ -59,21 +62,35 @@ const ScheduleForm = () => {
       return;
     }
   };
+  
 
   const handleRemoveEvent = (id) => {
     setEvents(events.filter((event) => event.id !== id));
   };
 
-  const handleSubmit = () => {
-    if (!day || !events.length) {
-      alert("Please fill in all required fields.");
-      return;
+  const handleSubmit = async () => {
+    try {
+      const groupedEvents = events.reduce((acc, event) => {
+        if (!acc[event.day]) {
+          acc[event.day] = [];
+        }
+        acc[event.day].push(event);
+        return acc;
+      }, {});
+  
+      for (const [day, eventsForDay] of Object.entries(groupedEvents)) {
+        const response = await ScheduleService.createData(day, eventsForDay);
+        Alert.alert("Success", response.message);
+      }
+  
+      setEvents([]);
+      setDay("");
+      setStartTime(null);
+    } catch (error) {
+      Alert.alert("Error", "Please try again.");
     }
-    console.log({
-      day,
-      events,
-    });
   };
+  
 
   const onChange = (event, selectedDate) => {
     const currentDate = selectedDate || startTime;

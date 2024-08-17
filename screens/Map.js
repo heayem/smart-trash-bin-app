@@ -8,7 +8,7 @@ import Button from "../components/MapComponent/Button";
 import ErrorMessage from "../components/MapComponent/ErrorMessage";
 import RouteSummary from "../components/MapComponent/RouteSummary";
 import CustomMarker from "../components/MapComponent/CustomMarker";
-import { fetchAllRouteCoordinates } from "../services/routeService/aiSuggestion";
+import { fetchAndCallApi } from "../services/routeService/aiSuggestion";
 import {
   fetchUserLocation,
   fetchRoute,
@@ -27,8 +27,10 @@ const Map = () => {
   const [error, setError] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [mapType, setMapType] = useState("standard");
-  const [markers, setMarkers] = useState([
+
+  const [bins, setBins] = useState([
     {
+      id: "bin-1",
       latitude: 11.5681,
       longitude: 104.8921,
       title: "RUPP",
@@ -41,6 +43,7 @@ const Map = () => {
       binLevel: 90,
     },
     {
+      id: "bin-2",
       latitude: 11.5689,
       longitude: 104.8932,
       title: "IFL",
@@ -53,6 +56,7 @@ const Map = () => {
       binLevel: 70,
     },
     {
+      id: "bin-3",
       latitude: 11.5681,
       longitude: 104.8947,
       title: "SETEC",
@@ -63,6 +67,20 @@ const Map = () => {
       size: 80,
       iconUri: require("../assets/Map/bin.jpg"),
       binLevel: 90,
+    },
+  ]);
+  const [stations, setStations] = useState([
+    {
+      id: "station-1",
+      latitude: 11.560173,
+      longitude: 104.892526,
+      title: "Station",
+      description: "Station 1",
+      iconName: "building",
+      Icon: FontAwesome,
+      color: "green",
+      size: 80,
+      iconUri: require("../assets/Map/bin.jpg"),
     },
   ]);
 
@@ -92,33 +110,53 @@ const Map = () => {
   }, []);
 
   const handleAiSuggestion = async () => {
-    if (!userLocation || markers.length === 0) return;
-
-    setCalculating(true);
+    if (!userLocation || bins.length === 0) return;
     setLoading(true);
+
     try {
-      const { allRouteCoordinates, routeSummary } =
-        await fetchAllRouteCoordinates(userLocation, markers);
-      console.log(allRouteCoordinates);
+      const { waypoints, endStation, message } = await fetchAndCallApi(
+        bins,
+        stations,
+        "Analyze this message",
+        userLocation
+      );
+
+      let allRouteCoordinates = [];
+      let currentLocation = userLocation;
+
+      for (const waypoint of waypoints) {
+        const route = await fetchRoute(currentLocation, waypoint);
+        allRouteCoordinates.push({
+          coordinates: route,
+          color: "#FF0000",
+        });
+        currentLocation = waypoint;
+      }
+
+      const finalRoute = await fetchRoute(currentLocation, endStation);
+      allRouteCoordinates.push({
+        coordinates: finalRoute,
+        color: "#00FF00",
+      });
+
       setRouteCoordinates(allRouteCoordinates);
-      console.log(allRouteCoordinates);
-      setInfoMessage(routeSummary.join("\n"));
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setCalculating(false);
+      setInfoMessage(`Suggested route to ${message}`);
       setLoading(false);
+    } catch (err) {
+      setLoading(false);
+      alert("Failed to fetch route suggestions", "Please try again later.");
     }
   };
 
   const handleCalculateRoutes = async () => {
-    if (!userLocation || markers.length === 0) return;
+    if (!userLocation || bins.length === 0) return;
 
     setCalculating(true);
     setLoading(true);
     try {
       const { allRouteCoordinates, routeSummary } =
-        await calculateRouteToNearestMarker(userLocation, markers);
+        await calculateRouteToNearestMarker(userLocation, bins);
+      console.log(allRouteCoordinates);
       setRouteCoordinates(allRouteCoordinates);
       setInfoMessage(routeSummary.join("\n"));
     } catch (err) {
@@ -176,7 +214,7 @@ const Map = () => {
         region={mapRegion}
         mapType={mapType}
       >
-        {markers.map((marker, index) => (
+        {bins.map((marker, index) => (
           <Marker
             key={index}
             coordinate={{
@@ -206,6 +244,38 @@ const Map = () => {
             </Callout>
           </Marker>
         ))}
+
+        {stations.map((station, index) => (
+          <Marker
+            key={index}
+            coordinate={{
+              latitude: station.latitude,
+              longitude: station.longitude,
+            }}
+            onPress={() => handleCalculateRouteToMarker(station)}
+          >
+            <CustomMarker iconUri={station.iconUri} size={52} />
+
+            <Callout>
+              <View style={styles.calloutContainer}>
+                <View style={styles.iconContainer}>
+                  <station.Icon
+                    name={station.iconName}
+                    size={station.size}
+                    color={station.color}
+                  />
+                </View>
+                <View style={styles.calloutTextContainer}>
+                  <Text style={styles.calloutTitle}>{station.title}</Text>
+                  <Text style={styles.calloutDescription}>
+                    {station.description}
+                  </Text>
+                </View>
+              </View>
+            </Callout>
+          </Marker>
+        ))}
+
         {userLocation && (
           <Marker
             coordinate={{
@@ -286,6 +356,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     gap: 8,
+  },
+  iconContainer: {
+    width: "100%",
+    height: 500,
+    justifyContent: "center",
+    alignItems: "center",
   },
   mapTypeButton: {
     backgroundColor: "#007BFF",

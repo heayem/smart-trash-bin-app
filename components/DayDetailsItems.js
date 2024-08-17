@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Button, StyleSheet, FlatList, Alert } from "react-native";
+import { View,FlatList, Alert, } from "react-native";
 import ScheduleService from "../services/ScheduleService/ScheduleService";
-import { formatTimeString } from "../Helper/TimeConvert";
 import Loading from "./Loading";
 import DayNoData from "./DayNoData";
+import MainEvent from "./ScheduleComponents/MainEvent";
 
 export const Schedule = ({ day, navigation }) => {
   const [schedule, setSchedule] = useState([]);
@@ -11,78 +11,103 @@ export const Schedule = ({ day, navigation }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchSchedule(day);
-  }, [day]);
-
-  const fetchSchedule = async (day) => {
-    setLoading(true);
-    try {
-      const result = await ScheduleService.getAll();
-      if (result.success) {
-        const daySchedule = result.data
-          ? transformSchedule(result.data[day])
-          : [];
+    const unsubscribe = ScheduleService.listenForData(day, (response) => {
+      if (response.success) {
+        const daySchedule = response.data ? transformSchedule(response.data) : [];
         setSchedule(daySchedule);
       } else {
-        setError(result.message || "Error fetching schedule");
+        setError(response.message);
       }
-    } catch (err) {
-      // Check if the error is related to network issues
-      if (err.message.includes("Network Error")) {
-        setError(
-          "Network connection lost. Please check your internet connection."
-        );
-      } else {
-        setError("Error fetching schedule: " + err.message);
-      }
-    } finally {
       setLoading(false);
-    }
-  };
+    });
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe(); 
+      }
+    };
+  }, [day]);
+
+  
 
   const transformSchedule = (scheduleData) => {
     if (!scheduleData) return [];
 
-    const keys = Object.keys(scheduleData);
-    return keys
-      .filter((key) => key.startsWith("title-"))
-      .map((key) => {
-        const index = key.split("-")[1];
-        return {
-          title: scheduleData[`title-${index}`] || "No title",
-          description: scheduleData[`description-${index}`] || "No description",
-          time: scheduleData[`time-${index}`] || "No time",
-        };
-      });
+    return Object.keys(scheduleData).map((key) => {
+      const event = scheduleData[key];
+      return {
+        id: key,
+        title: event.title || "No title",
+        description: event.description || "No description",
+        time: event.time || "No time",
+      };
+    });
   };
 
   useEffect(() => {
     if (error) {
-      Alert.alert("Error", error, [
-        { text: "OK", onPress: () => navigation.goBack() },
-      ]);
+      Alert.alert("Error", error, [{ text: "OK", onPress: () => navigation.goBack() }]);
     }
   }, [error]);
+
+  const confirmRemoval = () => {
+    return new Promise((resolve) => {
+      Alert.alert(
+        "Confirm Removal",
+        "Are you sure you want to delete this event?",
+        [
+          { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
+          { text: "Delete", onPress: () => resolve(true), style: "destructive" },
+        ]
+      );
+    });
+  };
+
+  const handleRemoveEvent = async (eventId) => {
+    if (!eventId) {
+      Alert.alert("Error", "Failed to delete event. Please try again.");
+      return;
+    }
+
+    const confirmed = await confirmRemoval();
+    if (confirmed) {
+      removeEvent(day, eventId);
+    }
+  };
+
+  const removeEvent = async (day, eventId) => {
+    try {
+      const deletionResult = await ScheduleService.remove(day, eventId);
+      if (deletionResult.success) {
+        const updatedSchedule = schedule.filter((event) => event.id !== eventId);
+        setSchedule(updatedSchedule);
+        Alert.alert("Success", "Event deleted successfully.");
+      } else {
+        Alert.alert("Error", deletionResult.message);
+      }
+    } catch (err) {
+      Alert.alert("Error", "Failed to delete event. Please try again.");
+    }
+  };
 
   if (loading) {
     return <Loading />;
   }
 
   if (schedule.length === 0) {
-    return <DayNoData fetchSchedule={fetchSchedule} day={day} />;
+    return <DayNoData fetchSchedule={() => {}} day={day} />;
   }
 
   return (
     <View>
       <FlatList
         data={schedule}
-        keyExtractor={(item, index) => index.toString()}
+        keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <MainEvent
-            title={item.title}
-            description={item.description}
-            time={item.time}
+            event={item}
             navigation={navigation}
+            removeEvent={() => handleRemoveEvent(item.id)}
           />
         )}
       />
@@ -90,63 +115,4 @@ export const Schedule = ({ day, navigation }) => {
   );
 };
 
-const MainEvent = ({ title, description, time, navigation }) => (
-  <View style={styles.scheduleContainer}>
-    <Text style={styles.eventTitle}>{title}</Text>
-    <Text style={styles.eventDescription}>{description}</Text>
-    <Text style={styles.eventTime}>{formatTimeString(time)}</Text>
-    <Text style={styles.mapDescription}>
-      Check the map for detailed routes and bins to collect.
-    </Text>
-    <MapButton navigation={navigation} />
-  </View>
-);
 
-const MapButton = ({ navigation }) => (
-  <View style={styles.buttonContainer}>
-    <Button
-      title="Go to Map"
-      onPress={() => navigation.navigate("Map")}
-      color="#007AFF"
-    />
-  </View>
-);
-
-const styles = StyleSheet.create({
-  scheduleContainer: {
-    marginBottom: 20,
-    padding: 15,
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 10,
-    elevation: 2,
-  },
-  eventTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 10,
-    color: "#007AFF",
-  },
-  eventDescription: {
-    fontSize: 16,
-    color: "#666",
-    marginBottom: 10,
-  },
-  eventTime: {
-    fontSize: 16,
-    color: "#333",
-    marginBottom: 10,
-  },
-  mapDescription: {
-    fontSize: 16,
-    color: "#666",
-    marginBottom: 10,
-  },
-  buttonContainer: {
-    borderRadius: 10,
-    overflow: "hidden",
-  },
-});

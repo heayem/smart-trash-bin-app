@@ -1,90 +1,57 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
-import BinService from '../services/BinService/binService'; 
-import Loading from "../components/Loading";
+import { BarChart } from "react-native-gifted-charts";
+import { View, Text, StyleSheet } from "react-native";
 
 const BinData = () => {
-  const [binData, setBinData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchAllData = async () => {
-      try {
-        const result = await BinService.getAll('trash-bin-database');
-        if (result.success) {
-          const bins = Object.keys(result.data || {}).map(key => ({ id: key, ...result.data[key] }));
-          setBinData(bins);
-          
-        } else {
-          setError(result.message);
-        }
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAllData();
-
-    const handleRealTimeUpdate = (update) => {
-      if (update.success) {
-        
-      } else {
-        setError(update.message);
-      }
-    };
-
-    BinService.listenForData('bin-1', handleRealTimeUpdate);
-
-    return () => {
-      
-    };
-  }, []);
-
-  if (loading) {
-    return <Loading />;
-  }
-
-  if (error) {
-    return Alert.alert('Error', error, [{ text: 'OK' }]);
-  }
+  const barData = [
+    { value: 230, label: 'Mon', frontColor: '#4ABFF4' },
+    { value: 180, label: 'Tue', frontColor: '#79C3DB' },
+    { value: 195, label: 'Wed', frontColor: '#28B2B3' },
+    { value: 250, label: 'Thu', frontColor: '#4ADDBA' },
+    { value: 320, label: 'Fri', frontColor: '#91E3E3' },
+    { value: 280, label: 'Sat', frontColor: '#FF9F45' }, // Added Saturday
+    { value: 210, label: 'Sun', frontColor: '#FF6F61' },   // Added Sunday
+  ];
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Smart Trash Bin</Text>
-      {binData.length > 0 ? (
-        <FlatList
-          data={binData}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.dataContainer}>
-              <Text>Bin ID: {item.id}</Text>
-              <Text>Fill Level: {item.fill}</Text>
-              <Text>Latitude: {item.lat}</Text>
-              <Text>Longitude: {item.lng}</Text>
-              <Text>Status: {item.status}</Text>
-            </View>
-          )}
-        />
-      ) : (
-        <Text>No data available</Text>
-      )}
+      <Text style={styles.title}>Bin Data</Text>
+      <BarChart
+        data={barData}
+        isAnimated
+        showFractionalValue
+        showYAxisIndices
+        noOfSections={4}
+        maxValue={400}
+        yAxisLabel="Count"
+        xAxisLabel="Day"
+        barWidth={30}
+        barBackgroundColor="#E0E0E0"
+        xAxisLabelStyle={styles.xAxisLabel}
+        yAxisLabelStyle={styles.yAxisLabel}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     padding: 20,
+    marginTop: 20,
   },
   title: {
-    fontSize: 24,
+    textAlign: 'center',
+    marginBottom: 10,
+    fontSize: 18,
     fontWeight: 'bold',
   },
-  dataContainer: {
-    marginTop: 20,
+  xAxisLabel: {
+    color: '#333',
+    fontSize: 12,
+  },
+  yAxisLabel: {
+    color: '#333',
+    fontSize: 12,
   },
 });
 

@@ -14,6 +14,7 @@ import {
   fetchRoute,
   calculateRouteToNearestMarker,
 } from "../services/mapService";
+import BinService from "../services/BinService/binService";
 
 const Map = () => {
   const [mapRegion, setMapRegion] = useState({
@@ -28,65 +29,7 @@ const Map = () => {
   const [userLocation, setUserLocation] = useState(null);
   const [mapType, setMapType] = useState("standard");
 
-  const [bins, setBins] = useState([
-    {
-      id: "bin-1",
-      latitude: 11.5681,
-      longitude: 104.8921,
-      title: "RUPP",
-      description: "Royal University of Phnom Penh",
-      iconName: "building",
-      Icon: FontAwesome,
-      color: "red",
-      size: 80,
-      iconUri: require("../assets/Map/bin.jpg"),
-      binLevel: 90,
-    },
-    {
-      id: "bin-2",
-      latitude: 11.5689,
-      longitude: 104.8932,
-      title: "IFL",
-      description: "Institute of Foreign Languages",
-      iconName: "building",
-      Icon: FontAwesome,
-      color: "blue",
-      size: 80,
-      iconUri: require("../assets/Map/bin.jpg"),
-      binLevel: 70,
-    },
-    {
-      id: "bin-3",
-      latitude: 11.5681,
-      longitude: 104.8947,
-      title: "SETEC",
-      description: "Setec Institute",
-      iconName: "building",
-      Icon: FontAwesome,
-      color: "green",
-      size: 80,
-      iconUri: require("../assets/Map/bin.jpg"),
-      binLevel: 90,
-    },
-  ]);
-  const [stations, setStations] = useState([
-    {
-      id: "station-1",
-      latitude: 11.560173,
-      longitude: 104.892526,
-      title: "Station",
-      description: "Station 1",
-      iconName: "building",
-      Icon: FontAwesome,
-      color: "green",
-      size: 80,
-      iconUri: require("../assets/Map/bin.jpg"),
-    },
-  ]);
-
-  const [routeCoordinates, setRouteCoordinates] = useState([]);
-  const [calculating, setCalculating] = useState(false);
-  const [infoMessage, setInfoMessage] = useState("");
+  const binImage = require("../assets/Map/bin.jpg");
 
   useEffect(() => {
     const init = async () => {
@@ -103,11 +46,100 @@ const Map = () => {
         setError(err.message);
       } finally {
         setLoading(false);
+        handleAiSuggestion();
+        fetchStations();
+        fetchBins();
       }
     };
 
     init();
   }, []);
+
+  const fetchBins = async () => {
+    const { success, data, message } = await BinService.getAll(
+      "trash-bin-database"
+    );
+    if (success && data) {
+      const normalizedData = normalizeBins(data);
+      setBins(normalizedData);
+    } else {
+      setError(message || "Failed to fetch bins.");
+    }
+  };
+
+  const fetchStations = async () => {
+    const { success, data, message } = await BinService.getAll(
+      "station-database"
+    );
+    if (success && data) {
+      const normalizedData = normalizeStations(data);
+      setStations(normalizedData);
+    } else {
+      setError(message || "Failed to fetch bins.");
+    }
+  };
+
+  const normalizeBins = (data) => {
+    return Object.keys(data).map((key) => {
+      const bin = data[key];
+      return {
+        id: key,
+        latitude: bin.latitude || bin.lat,
+        longitude: bin.longitude || bin.lng,
+        title: bin.title || "Unknown",
+        binLevel: bin.binLevel || bin.fill,
+      };
+    });
+  };
+
+  const normalizeStations = (data) => {
+    return Object.keys(data).map((key) => {
+      const station = data[key];
+      return {
+        id: key,
+        latitude: station.latitude || station.lat,
+        longitude: station.longitude || station.lng,
+        title: station.title || "Unknown",
+      };
+    });
+  };
+
+  const [bins, setBins] = useState([
+    {
+      id: "bin-1",
+      latitude: 11.5681,
+      longitude: 104.8921,
+      title: "RUPP",
+      binLevel: 90,
+    },
+    {
+      id: "bin-2",
+      latitude: 11.5689,
+      longitude: 104.8932,
+      title: "IFL",
+      binLevel: 70,
+    },
+    {
+      id: "bin-3",
+      latitude: 11.5681,
+      longitude: 104.8947,
+      title: "SETEC",
+      binLevel: 90,
+    },
+  ]);
+
+  const [stations, setStations] = useState([
+    {
+      id: "station-1",
+      latitude: 11.560173,
+      longitude: 104.892526,
+      title: "Station",
+    },
+  ]);
+
+  const [routeCoordinates, setRouteCoordinates] = useState([]);
+  const [calculating, setCalculating] = useState(false);
+  const [infoMessage, setInfoMessage] = useState("");
 
   const handleAiSuggestion = async () => {
     if (!userLocation || bins.length === 0) return;
@@ -140,7 +172,7 @@ const Map = () => {
       });
 
       setRouteCoordinates(allRouteCoordinates);
-      setInfoMessage(`Suggested route to ${message}`);
+      setInfoMessage(`AI suggested to ${message}`);
       setLoading(false);
     } catch (err) {
       setLoading(false);
@@ -156,9 +188,8 @@ const Map = () => {
     try {
       const { allRouteCoordinates, routeSummary } =
         await calculateRouteToNearestMarker(userLocation, bins);
-      console.log(allRouteCoordinates);
       setRouteCoordinates(allRouteCoordinates);
-      setInfoMessage(routeSummary.join("\n"));
+      setInfoMessage(`Nearly suggested to ${routeSummary}`);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -179,9 +210,7 @@ const Map = () => {
           color: "#FF0000",
         },
       ]);
-      setInfoMessage(
-        `Route to ${marker.title}:\nFrom your location to ${marker.title}`
-      );
+      setInfoMessage(`From your location -> ${marker.title}`);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -223,22 +252,15 @@ const Map = () => {
             }}
             onPress={() => handleCalculateRouteToMarker(marker)}
           >
-            <CustomMarker iconUri={marker.iconUri} size={52} />
+            <CustomMarker iconUri={binImage} size={52} />
 
             <Callout>
               <View style={styles.calloutContainer}>
-                <View style={styles.iconContainer}>
-                  <marker.Icon
-                    name={marker.iconName}
-                    size={marker.size}
-                    color={marker.color}
-                  />
+                <View>
+                  <FontAwesome name="building" size={40} color="green" />
                 </View>
                 <View style={styles.calloutTextContainer}>
-                  <Text style={styles.calloutTitle}>{marker.title}</Text>
-                  <Text style={styles.calloutDescription}>
-                    {marker.description}
-                  </Text>
+                  <Text style={styles.calloutTitle}>{marker.title} </Text>
                 </View>
               </View>
             </Callout>
@@ -254,22 +276,15 @@ const Map = () => {
             }}
             onPress={() => handleCalculateRouteToMarker(station)}
           >
-            <CustomMarker iconUri={station.iconUri} size={52} />
+            <CustomMarker iconUri={binImage} size={52} />
 
             <Callout>
               <View style={styles.calloutContainer}>
-                <View style={styles.iconContainer}>
-                  <station.Icon
-                    name={station.iconName}
-                    size={station.size}
-                    color={station.color}
-                  />
+                <View>
+                  <FontAwesome name="building" size={60} color="red" />
                 </View>
                 <View style={styles.calloutTextContainer}>
                   <Text style={styles.calloutTitle}>{station.title}</Text>
-                  <Text style={styles.calloutDescription}>
-                    {station.description}
-                  </Text>
                 </View>
               </View>
             </Callout>
@@ -306,7 +321,7 @@ const Map = () => {
         <Button
           Icon={MaterialCommunityIcons}
           onPress={handleAiSuggestion}
-          style={styles.aiButton}
+          style={styles.mapButton}
           name="robot-outline"
           size={28}
           color="white"
@@ -330,13 +345,15 @@ const Map = () => {
         <Button
           Icon={MaterialCommunityIcons}
           onPress={handleToggleMapType}
-          style={styles.mapTypeButton}
+          style={styles.mapButton}
           name="map-outline"
           size={28}
           color="white"
         />
       </View>
-      {infoMessage && <RouteSummary message={infoMessage} />}
+      {infoMessage !== "" && (
+        <RouteSummary message={infoMessage} color={"#F24A4A"} />
+      )}
     </View>
   );
 };
@@ -348,45 +365,43 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
   },
+  calloutContainer: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    maxWidth: 250,
+    maxHeight: 250,
+  },
+  calloutTextContainer: {
+    flexDirection: "column",
+    flexShrink: 1,
+  },
+  calloutTitle: {
+    color: "black",
+    fontWeight: "bold",
+    flexWrap: "wrap",
+  },
   buttonsContainer: {
-    position: "absolute",
-    bottom: 10,
-    left: 10,
-    right: 10,
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 8,
-  },
-  iconContainer: {
     width: "100%",
-    height: 500,
-    justifyContent: "center",
+    position: "absolute",
+    bottom: 28,
+    left: 0,
+    flexDirection: "row",
     alignItems: "center",
-  },
-  mapTypeButton: {
-    backgroundColor: "#007BFF",
-    borderRadius: 10,
-    padding: 10,
-    alignItems: "center",
-  },
-  aiButton: {
-    backgroundColor: "#007BFF",
-    borderRadius: 10,
-    padding: 10,
-    alignItems: "center",
+    justifyContent: "space-evenly",
   },
   mapButton: {
-    backgroundColor: "#007BFF",
+    backgroundColor: "#00008B",
     padding: 10,
-    borderRadius: 10,
-    alignItems: "center",
+    borderRadius: 5,
+    marginHorizontal: 5,
   },
   cancelButton: {
     backgroundColor: "#FF0000",
     padding: 10,
-    borderRadius: 10,
-    flexDirection: "row",
-    alignItems: "center",
+    borderRadius: 5,
+    marginHorizontal: 5,
   },
 });
 

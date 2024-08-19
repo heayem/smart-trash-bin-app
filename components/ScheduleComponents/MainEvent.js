@@ -8,7 +8,7 @@ const MainEvent = ({ event, navigation, removeEvent }) => (
   <View style={styles.scheduleContainer}>
     <Text style={styles.eventTitle}>{event.title}</Text>
     <Text style={styles.eventDescription}>{event.description}</Text>
-    <Text style={styles.eventTime}>{formatTimeString(event.time)}</Text>
+    <Text style={styles.eventTime}>{event.time}</Text>
     <Text style={styles.mapDescription}>
       Check the map for detailed routes and bins to collect.
     </Text>

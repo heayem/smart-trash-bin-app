@@ -109,7 +109,7 @@ export const calculateRouteToNearestMarker = async (userLocation, markers) => {
           });
   
           routeSummary.push(
-            `From ${currentLocation.title} to ${nearestMarker.marker.title}`
+            ` ${currentLocation.title} -> ${nearestMarker.marker.title}`
           );
   
           currentLocation = nearestMarker.marker;

@@ -12,7 +12,7 @@ export const fetchAndCallApi = async (
   }
 ) => {
   const response = await axios.post(
-    "https://smart-trash-bin-service.vercel.app/api/chat",
+    "https://trash-bin-analysis.vercel.app/route-summary",
     {
       userLocation,
       bins,
@@ -20,7 +20,8 @@ export const fetchAndCallApi = async (
       message,
     }
   );
-
+  console.log(response?.data);
+  
   if (response?.data?.reply) {
     const reply = response.data.reply;
     const routeDetails = reply.match(
@@ -40,7 +41,7 @@ export const fetchAndCallApi = async (
           }
           return bin.title;
         })
-        .filter(title => title !== null)
+        .filter((title) => title !== null)
         .join(" -> ");
 
       const station = stations.find((s) => s.id === endStationId);
@@ -51,18 +52,20 @@ export const fetchAndCallApi = async (
 
       const finalMessage = `Route: ${messageRoute} finally to ${station.title}`;
 
-      const waypoints = binsOrder.map((binId) => {
-        const bin = bins.find((b) => b.id === binId.trim());
-        if (!bin) {
-          alert(`Bin ${binId} not found`);
-          return null;
-        }
-        
-        return {
-          latitude: bin.latitude,
-          longitude: bin.longitude,
-        };
-      }).filter(waypoint => waypoint !== null);
+      const waypoints = binsOrder
+        .map((binId) => {
+          const bin = bins.find((b) => b.id === binId.trim());
+          if (!bin) {
+            alert(`Bin ${binId} not found`);
+            return null;
+          }
+
+          return {
+            latitude: bin.latitude,
+            longitude: bin.longitude,
+          };
+        })
+        .filter((waypoint) => waypoint !== null);
 
       return {
         waypoints,

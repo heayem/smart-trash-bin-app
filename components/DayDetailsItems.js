@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View,FlatList, Alert, } from "react-native";
+import { View,FlatList, Alert, StyleSheet} from "react-native";
 import ScheduleService from "../services/ScheduleService/ScheduleService";
 import Loading from "./Loading";
 import DayNoData from "./DayNoData";
@@ -100,7 +100,9 @@ export const Schedule = ({ day, navigation }) => {
 
   return (
     <View>
+      
       <FlatList
+        style={styles.container}
         data={schedule}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
@@ -114,5 +116,12 @@ export const Schedule = ({ day, navigation }) => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 20,
+    backgroundColor: "#f5f5f5",
+  },
+})
 
 

@@ -19,9 +19,8 @@ const MapButton = ({ navigation, title = "Go to Map", onPressAction }) => (
 
 const styles = StyleSheet.create({
   buttonContainer: {
-    borderRadius: 10,
+    borderRadius: 8,
     overflow: "hidden",
-    margin: 10, // added margin for better spacing
   },
 });
 

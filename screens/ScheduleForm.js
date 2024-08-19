@@ -139,7 +139,7 @@ const ScheduleForm = () => {
           testID="dateTimePicker"
           value={startTime || new Date()}
           mode="time"
-          is24Hour={true}
+          is24Hour={false}
           display="default"
           onChange={onChange}
         />

@@ -20,8 +20,7 @@ export const fetchAndCallApi = async (
       message,
     }
   );
-  console.log(response?.data);
-  
+
   if (response?.data?.reply) {
     const reply = response.data.reply;
     const routeDetails = reply.match(

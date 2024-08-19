@@ -32,28 +32,33 @@ const Map = () => {
   const binImage = require("../assets/Map/bin.jpg");
 
   useEffect(() => {
-    const init = async () => {
-      try {
-        const location = await fetchUserLocation();
-        setUserLocation(location);
-        setMapRegion({
-          latitude: location.latitude,
-          longitude: location.longitude,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
-        });
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-        handleAiSuggestion();
-        fetchStations();
-        fetchBins();
-      }
-    };
-
     init();
+    fetchStations();
+    fetchBins();
   }, []);
+
+  useEffect(() => {
+    if (userLocation && bins.length > 0) {
+      handleAiSuggestion();
+    }
+  }, [bins, userLocation]);
+
+  const init = async () => {
+    try {
+      const location = await fetchUserLocation();
+      setUserLocation(location);
+      setMapRegion({
+        latitude: location.latitude,
+        longitude: location.longitude,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+      });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchBins = async () => {
     const { success, data, message } = await BinService.getAll(
@@ -142,7 +147,7 @@ const Map = () => {
   const [infoMessage, setInfoMessage] = useState("");
 
   const handleAiSuggestion = async () => {
-    if (!userLocation || bins.length === 0) return;
+    // if (!userLocation || bins.length === 0) return;
     setLoading(true);
 
     try {

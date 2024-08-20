@@ -2,10 +2,7 @@ import React from "react";
 import { View } from "react-native";
 import Menu from "../components/Menu.js";
 
-const Home = ({ navigation }) => {
-  const bins = () => {
-    navigation.navigate("Bins");
-  };
+const Home = () => {
   return (
     <View>
       <Menu />

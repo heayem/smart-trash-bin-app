@@ -1,6 +1,9 @@
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, get, set, update, remove, onValue } from "firebase/database";
+import { getDatabase, ref, get, set, update, remove, onValue } from 'firebase/database';
+import { initializeAuth, getReactNativePersistence, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Your Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyAKrvPTDE_YSFrbOLlwaIi-iM9ge-Pchz0",
   authDomain: "training-smart-trash-bin.firebaseapp.com",
@@ -15,4 +18,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
-export { database, ref, get, set, update, remove, onValue };
+// Initialize Auth with persistence using AsyncStorage
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage),
+});
+
+export { database, ref, get, set, update, remove, onValue, auth, signInWithEmailAndPassword, signOut };

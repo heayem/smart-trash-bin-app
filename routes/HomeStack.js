@@ -8,7 +8,7 @@ import AboutUs from "../screens/AbooutUs";
 import Schedule from "../screens/Schedule";
 import DayDetails from "../screens/DayDetails";
 import ScheduleForm from "../screens/ScheduleForm";
-import TestAPI from "../screens/TestAPI";
+import Profile from "../screens/Profile";
 import BinData from "../screens/BinData";
 
 const Stack = createStackNavigator();
@@ -26,9 +26,9 @@ function Navigator() {
           }}
         />
         <Stack.Screen
-          name="TestAPI"
-          component={TestAPI}
-          options={{ title: "Test API", headerTitleAlign: "center" }}
+          name="Profile"
+          component={Profile}
+          options={{ title: "Profile", headerTitleAlign: "center" }}
         />
         <Stack.Screen
           name="Map"

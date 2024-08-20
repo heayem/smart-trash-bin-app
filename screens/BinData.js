@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart } from 'react-native-gifted-charts';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { database, ref, get, set } from '../firebaseConfig';
+import { View, Text, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { getDatabase, ref, get, set, update } from 'firebase/database';
 import moment from 'moment';
+
+const database = getDatabase();
 
 const BinData = () => {
   const [barData, setBarData] = useState([]);
@@ -11,73 +13,59 @@ const BinData = () => {
   useEffect(() => {
     const fetchAndUpdateData = async () => {
       try {
-        const binDataRef = ref(database, 'trash-bin-data');
-        const weeklyAveragesRef = ref(database, 'weekly-averages');
-        const snapshot = await get(binDataRef);
-        const weeklySnapshot = await get(weeklyAveragesRef);
+        const today = moment().format('ddd');
+        const startOfWeek = moment().startOf('week').format('YYYY-MM-DD');
+        const endOfWeek = moment().endOf('week').format('YYYY-MM-DD');
 
-        if (!snapshot.exists()) {
-          console.log('No bin data available');
-          return;
-        }
+        const dailyDataRef = ref(database, 'daily-bin-data');
+        const dailySnapshot = await get(dailyDataRef);
+        const dailyData = dailySnapshot.exists() ? dailySnapshot.val() : {};
 
-        const binData = snapshot.val();
-        const weeklyData = weeklySnapshot.val();
+        const weeklyDataRef = ref(database, 'summed-bin-data');
+        const weeklySnapshot = await get(weeklyDataRef);
+        const weeklyData = weeklySnapshot.exists() ? weeklySnapshot.val() : {};
 
-        const startOfWeek = moment().startOf('week');
-        const endOfWeek = moment().endOf('week');
-        const weekStartKey = startOfWeek.format('YYYY-MM-DD');
-
-        const weeklyBinLevels = {
-          Mon: { total: 0, count: 0 },
-          Tue: { total: 0, count: 0 },
-          Wed: { total: 0, count: 0 },
-          Thu: { total: 0, count: 0 },
-          Fri: { total: 0, count: 0 },
-          Sat: { total: 0, count: 0 },
-          Sun: { total: 0, count: 0 }
-        };
-
-        Object.values(binData).forEach(bin => {
-          const binFill = parseFloat(bin['bin-level']);
-          const binTime = moment(bin.timestamp);
-
-          if (binFill && binTime.isBetween(startOfWeek, endOfWeek, 'day', '[]') &&
-              binTime.isAfter(moment().set({ hour: 19, minute: 0, second: 0 }))) {
-            const dayOfWeek = binTime.format('ddd');
-            if (weeklyBinLevels[dayOfWeek]) {
-              weeklyBinLevels[dayOfWeek].total += binFill;
-              weeklyBinLevels[dayOfWeek].count += 1;
-            }
+        const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        daysOfWeek.forEach(day => {
+          if (!dailyData[day]) {
+            dailyData[day] = 0;
+          }
+          if (!weeklyData[day]) {
+            weeklyData[day] = 0;
           }
         });
 
-        const colors = {
-          Mon: '#4ABFF4',
-          Tue: '#79C3DB',
-          Wed: '#28B2B3',
-          Thu: '#4ADDBA',
-          Fri: '#91E3E3',
-          Sat: '#FF9F45',
-          Sun: '#FF6F61'
-        };
+        const todayDataRef = ref(database, 'trash-bin-data');
+        const todaySnapshot = await get(todayDataRef);
+        const todayBinData = todaySnapshot.exists() ? todaySnapshot.val() : {};
 
-        const averageBinLevels = Object.keys(weeklyBinLevels).map(day => {
-          const data = weeklyBinLevels[day];
-          const average = data.count > 0 ? data.total / data.count : 0;
-
-          return {
-            value: average,
-            label: day,
-            frontColor: colors[day]
-          };
+        Object.values(todayBinData).forEach(bin => {
+          const binFill = parseFloat(bin.fill);
+          const binDate = moment(bin.timestamp).format('ddd');
+          if (daysOfWeek.includes(binDate)) {
+            dailyData[binDate] = (dailyData[binDate] || 0) + binFill;
+          }
         });
 
-        await set(ref(database, `weekly-averages/${weekStartKey}`), weeklyBinLevels);
+        Object.keys(dailyData).forEach(day => {
+          weeklyData[day] = (weeklyData[day] || 0) + dailyData[day];
+        });
 
-        setBarData(averageBinLevels);
+        const chartData = daysOfWeek.map(day => ({
+          value: weeklyData[day] || 0,
+          label: day,
+          frontColor: colors[day] || '#000000'
+        }));
+
+        setBarData(chartData);
+
+        await update(weeklyDataRef, weeklyData);
+
+        if (moment().isSame(endOfWeek, 'day')) {
+          await set(dailyDataRef, {});
+        }
       } catch (error) {
-        console.error('Error fetching or updating data:', error);
+        Alert.alert('Error', 'Error fetching or updating data.');
       } finally {
         setLoading(false);
       }
@@ -92,7 +80,7 @@ const BinData = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Bin Data</Text>
+      <Text style={styles.title}>Trash bin data in weekly </Text>
       <BarChart
         data={barData}
         isAnimated
@@ -100,15 +88,26 @@ const BinData = () => {
         showYAxisIndices
         noOfSections={4}
         maxValue={Math.max(...barData.map(item => item.value), 400)}
-        yAxisLabel="Count"
+        yAxisLabel="Level"
         xAxisLabel="Day"
         barWidth={30}
         barBackgroundColor="#E0E0E0"
         xAxisLabelStyle={styles.xAxisLabel}
         yAxisLabelStyle={styles.yAxisLabel}
+        xAxisLabelRotate={-45}
       />
     </View>
   );
+};
+
+const colors = {
+  Mon: '#4ABFF4',
+  Tue: '#79C3DB',
+  Wed: '#28B2B3',
+  Thu: '#4ADDBA',
+  Fri: '#91E3E3',
+  Sat: '#FF9F45',
+  Sun: '#FF6F61'
 };
 
 const styles = StyleSheet.create({
@@ -119,7 +118,7 @@ const styles = StyleSheet.create({
   },
   title: {
     textAlign: 'center',
-    marginBottom: 10,
+    marginBottom: 20,
     fontSize: 18,
     fontWeight: 'bold',
   },

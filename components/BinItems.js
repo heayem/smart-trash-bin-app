@@ -44,7 +44,6 @@ const BinItems = ({ label, firstValue, legends, onLegendPress, binId, lat, lng }
                 centerLabelComponent={() => (
                     <View>
                         <Text style={styles.centerLabelValue}>{firstValue}</Text>
-                        <Text style={styles.centerLabelText}>Total</Text>
                     </View>
                 )}
             />

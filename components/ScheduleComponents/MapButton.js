@@ -9,7 +9,7 @@ const MapButton = ({ navigation, title = "Go to Map", onPressAction }) => (
         if (onPressAction) {
           onPressAction();
         } else {
-          navigation.navigate("Map", { triggerCalculateRoutes: true });
+          navigation.navigate("Map");
         }
       }}
       color="#007AFF"

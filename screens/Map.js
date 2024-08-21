@@ -15,8 +15,13 @@ import {
   calculateRouteToNearestMarker,
 } from "../services/mapService";
 import BinService from "../services/BinService/binService";
+import { useRoute } from '@react-navigation/native';
 
 const Map = () => {
+
+  const route = useRoute(); 
+  const { coordinates } = route.params || {};
+
   const [mapRegion, setMapRegion] = useState({
     latitude: 11.5561,
     longitude: 104.9285,
@@ -31,6 +36,7 @@ const Map = () => {
 
   const binImage = require("../assets/Map/bin.jpg");
 
+
   useEffect(() => {
     init();
     fetchStations();
@@ -38,10 +44,17 @@ const Map = () => {
   }, []);
 
   useEffect(() => {
-    if (userLocation && bins.length > 0) {
-      handleAiSuggestion();
+    if (coordinates && userLocation) {
+        handleCalculateRouteToMarker(coordinates);
     }
-  }, [bins, userLocation]);
+    else{
+      if (userLocation && bins.length > 0) {
+        handleAiSuggestion();
+      }
+    }
+    
+    
+  }, [coordinates, bins, userLocation]);
 
   const init = async () => {
     try {

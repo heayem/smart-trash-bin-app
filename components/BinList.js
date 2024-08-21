@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, Text, StyleSheet } from 'react-native';
+import { ScrollView, Text, StyleSheet, Alert } from 'react-native';
 import BinItems from '../components/BinItems';
-import { getDatabase, ref, onValue, off } from 'firebase/database'; 
+import { ref, onValue } from 'firebase/database'; 
 import { database } from '../firebaseConfig'; 
 import { useNavigation } from '@react-navigation/native'; 
 import Loading from "./Loading";
@@ -13,47 +13,28 @@ const BinList = () => {
   const navigation = useNavigation(); 
 
   useEffect(() => {
-    const fetchAllData = async () => {
-      try {
-        const dbRef = ref(database, 'trash-bin-database');
-        onValue(dbRef, (snapshot) => {
-          if (snapshot.exists()) {
-            const data = snapshot.val();
-            const bins = Object.keys(data).map(key => ({ id: key, ...data[key] }));
-            setBinData(bins);
-          } else {
-            setError('No data found');
-          }
-        }, {
-          onlyOnce: false, 
-        });
-      } catch (error) {
-        setError('Something went wrong!');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAllData();
-
     const dbRef = ref(database, 'trash-bin-database');
-    const unsubscribe = onValue(dbRef, (snapshot) => {
+    const handleData = (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.val();
         const bins = Object.keys(data).map(key => ({ id: key, ...data[key] }));
         setBinData(bins);
+        setError(null);
       } else {
         setError('No data found');
       }
-    });
+      setLoading(false);
+    };
+
+    const unsubscribe = onValue(dbRef, handleData);
 
     return () => {
-      off(dbRef); 
+      unsubscribe(); 
     };
   }, []);
 
-  const handleLocationPress = () => {
-    navigation.navigate('Map');
+  const handleLocationPress = (lat, lng , title) => {
+    navigation.navigate('Map', { coordinates: { latitude: lat, longitude: lng , title: title} }); 
   };
 
   if (loading) {
@@ -61,7 +42,8 @@ const BinList = () => {
   }
   
   if (error) {
-    return Alert.alert('Error', error, [{ text: 'OK' }]);
+    Alert.alert('Error', error, [{ text: 'OK', onPress: () => setError(null) }]);
+    return null; 
   }
   
   return (
@@ -70,13 +52,16 @@ const BinList = () => {
         binData.map((bin) => (
           <BinItems
             key={bin.id}
-            label={`Smart Bin ${bin.id}`}
+            binId={bin.id}
+            lat={bin.lat} 
+            lng={bin.lng} 
+            label={`Smart Bin ${bin.title}`}
             firstValue={bin.fill} 
             legends={[
               { text: `Level`, color: 'orange' },
               { text: `Location`, color: 'red' }
             ]}
-            onLegendPress={() => handleLocationPress()} 
+            onLegendPress={() => handleLocationPress(bin.lat, bin.lng, bin.title)} 
           />
         ))
       ) : (

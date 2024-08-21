@@ -2,15 +2,27 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
 
-const BinItems = ({ label, firstValue, legends, onLegendPress }) => {
+const BinItems = ({ label, firstValue, legends, onLegendPress, binId, lat, lng }) => {
     const secondValue = 100 - firstValue;
     const data = [
-        { value: firstValue, color: legends[0].color },
+        { value: firstValue, color: legends[0]?.color || 'gray' },
         { value: secondValue, color: 'white' }
     ];
 
+    const handleLegendPress = (text) => {
+        if (text === 'Location' && onLegendPress) {
+            onLegendPress(lat, lng); 
+        }
+    };
+
     const renderLegend = (text, color, index) => (
-        <TouchableOpacity key={index} onPress={onLegendPress}>
+        <TouchableOpacity
+            key={index}
+            onPress={() => handleLegendPress(text)}
+            disabled={text !== 'Location'} 
+            accessibilityLabel={text}
+            accessibilityHint={text === 'Location' ? "Press to view location" : "Not pressable"}
+        >
             <View style={styles.legendContainer}>
                 <View style={[styles.legendColor, { backgroundColor: color || 'white' }]} />
                 <Text style={styles.legendText}>{text || ''}</Text>

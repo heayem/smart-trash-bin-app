@@ -6,11 +6,12 @@ const GOOGLE_MAPS_APIKEY = "AIzaSyAKrvPTDE_YSFrbOLlwaIi-iM9ge-Pchz0";
 
 export const fetchUserLocation = async () => {
   try {
-    let { status } = await Location.requestForegroundPermissionsAsync();
+    const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") {
       throw new Error("Permission to access location was denied.");
     }
-    let location = await Location.getCurrentPositionAsync({
+
+    const location = await Location.getCurrentPositionAsync({
       enableHighAccuracy: true,
     });
     const { latitude, longitude } = location.coords;
@@ -21,7 +22,9 @@ export const fetchUserLocation = async () => {
       description: "This is where you are",
     };
   } catch (err) {
-    throw new Error(err.message || "Error fetching location. Please try again later.");
+    throw new Error(
+      err.message || "Error fetching location. Please try again later."
+    );
   }
 };
 
@@ -41,7 +44,9 @@ export const fetchRoute = async (origin, destination) => {
       throw new Error("No route found.");
     }
   } catch (err) {
-    throw new Error(err.message || "Error fetching route. Please try again later.");
+    throw new Error(
+      err.message || "Error fetching route. Please try again later."
+    );
   }
 };
 
@@ -82,49 +87,48 @@ const decodePolyline = (encoded) => {
 };
 
 export const calculateRouteToNearestMarker = async (userLocation, markers) => {
-    let remainingMarkers = [...markers];
-    let currentLocation = userLocation;
-    let allRouteCoordinates = [];
-    let segmentColors = [];
-    let routeSummary = [];
-  
-    while (remainingMarkers.length > 0) {
-      let nearestMarker = remainingMarkers.reduce(
-        (nearest, marker) => {
-          const distance = haversine(currentLocation, marker, { unit: "meter" });
-          if (distance < nearest.distance) {
-            return { marker, distance };
-          }
-          return nearest;
-        },
-        { marker: null, distance: Infinity }
-      );
-  
-      if (nearestMarker.marker) {
-        try {
-          const route = await fetchRoute(currentLocation, nearestMarker.marker);
-          allRouteCoordinates.push({
-            coordinates: route,
-            color: segmentColors.length % 2 === 0 ? "#FF0000" : "#0000FF",
-          });
-  
-          routeSummary.push(
-            ` ${currentLocation.title} -> ${nearestMarker.marker.title}`
-          );
-  
-          currentLocation = nearestMarker.marker;
-  
-          remainingMarkers = remainingMarkers.filter(
-            (marker) => marker !== nearestMarker.marker
-          );
-        } catch (err) {
-          console.error("Error fetching route:", err);
-        }
-      } else {
-        break;
-      }
-    }
-  
-    return { allRouteCoordinates, routeSummary };
-  };
+  let remainingMarkers = [...markers];
+  let currentLocation = userLocation;
+  let allRouteCoordinates = [];
+  let segmentColors = [];
+  let routeSummary = [];
 
+  while (remainingMarkers.length > 0) {
+    let nearestMarker = remainingMarkers.reduce(
+      (nearest, marker) => {
+        const distance = haversine(currentLocation, marker, { unit: "meter" });
+        if (distance < nearest.distance) {
+          return { marker, distance };
+        }
+        return nearest;
+      },
+      { marker: null, distance: Infinity }
+    );
+
+    if (nearestMarker.marker) {
+      try {
+        const route = await fetchRoute(currentLocation, nearestMarker.marker);
+        allRouteCoordinates.push({
+          coordinates: route,
+          color: segmentColors.length % 2 === 0 ? "#FF0000" : "#0000FF",
+        });
+
+        routeSummary.push(
+          `${currentLocation.title} -> ${nearestMarker.marker.title}`
+        );
+
+        currentLocation = nearestMarker.marker;
+
+        remainingMarkers = remainingMarkers.filter(
+          (marker) => marker !== nearestMarker.marker
+        );
+      } catch (err) {
+        console.error("Error fetching route:", err);
+      }
+    } else {
+      break;
+    }
+  }
+
+  return { allRouteCoordinates, routeSummary };
+};

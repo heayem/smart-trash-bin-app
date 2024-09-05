@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, } from 'react-native';
 import BinList from '../components/BinList';
 
 const Bins = () => {

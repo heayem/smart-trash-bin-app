@@ -15,11 +15,10 @@ import {
   calculateRouteToNearestMarker,
 } from "../services/mapService";
 import BinService from "../services/BinService/binService";
-import { useRoute } from '@react-navigation/native';
+import { useRoute } from "@react-navigation/native";
 
 const Map = () => {
-
-  const route = useRoute(); 
+  const route = useRoute();
   const { coordinates } = route.params || {};
 
   const [mapRegion, setMapRegion] = useState({
@@ -33,53 +32,51 @@ const Map = () => {
   const [error, setError] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [mapType, setMapType] = useState("standard");
+  const [bins, setBins] = useState([]);
+  const [stations, setStations] = useState([]);
+  const [routeCoordinates, setRouteCoordinates] = useState([]);
+  const [calculating, setCalculating] = useState(false);
+  const [infoMessage, setInfoMessage] = useState("");
 
   const binImage = require("../assets/Map/bin.jpg");
 
-
   useEffect(() => {
-    init();
+    const initialize = async () => {
+      try {
+        const location = await fetchUserLocation();
+        setUserLocation(location);
+        setMapRegion({
+          latitude: location.latitude,
+          longitude: location.longitude,
+          latitudeDelta: 0.0922,
+          longitudeDelta: 0.0421,
+        });
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initialize();
     fetchStations();
     fetchBins();
   }, []);
 
   useEffect(() => {
     if (coordinates && userLocation) {
-        handleCalculateRouteToMarker(coordinates);
+      handleCalculateRouteToMarker(coordinates);
+    } else if (userLocation && bins.length > 0) {
+      handleAiSuggestion();
     }
-    else{
-      if (userLocation && bins.length > 0) {
-        handleAiSuggestion();
-      }
-    }
-    
-    
   }, [coordinates, bins, userLocation]);
-
-  const init = async () => {
-    try {
-      const location = await fetchUserLocation();
-      setUserLocation(location);
-      setMapRegion({
-        latitude: location.latitude,
-        longitude: location.longitude,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
-      });
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const fetchBins = async () => {
     const { success, data, message } = await BinService.getAll(
       "trash-bin-database"
     );
     if (success && data) {
-      const normalizedData = normalizeBins(data);
-      setBins(normalizedData);
+      setBins(normalizeBins(data));
     } else {
       setError(message || "Failed to fetch bins.");
     }
@@ -90,10 +87,9 @@ const Map = () => {
       "station-database"
     );
     if (success && data) {
-      const normalizedData = normalizeStations(data);
-      setStations(normalizedData);
+      setStations(normalizeStations(data));
     } else {
-      setError(message || "Failed to fetch bins.");
+      setError(message || "Failed to fetch stations.");
     }
   };
 
@@ -122,47 +118,10 @@ const Map = () => {
     });
   };
 
-  const [bins, setBins] = useState([
-    {
-      id: "bin-1",
-      latitude: 11.5681,
-      longitude: 104.8921,
-      title: "RUPP",
-      binLevel: 90,
-    },
-    {
-      id: "bin-2",
-      latitude: 11.5689,
-      longitude: 104.8932,
-      title: "IFL",
-      binLevel: 70,
-    },
-    {
-      id: "bin-3",
-      latitude: 11.5681,
-      longitude: 104.8947,
-      title: "SETEC",
-      binLevel: 90,
-    },
-  ]);
-
-  const [stations, setStations] = useState([
-    {
-      id: "station-1",
-      latitude: 11.560173,
-      longitude: 104.892526,
-      title: "Station",
-    },
-  ]);
-
-  const [routeCoordinates, setRouteCoordinates] = useState([]);
-  const [calculating, setCalculating] = useState(false);
-  const [infoMessage, setInfoMessage] = useState("");
-
   const handleAiSuggestion = async () => {
-    // if (!userLocation || bins.length === 0) return;
-    setLoading(true);
+    if (!userLocation || bins.length === 0) return;
 
+    setLoading(true);
     try {
       const { waypoints, endStation, message } = await fetchAndCallApi(
         bins,
@@ -176,25 +135,19 @@ const Map = () => {
 
       for (const waypoint of waypoints) {
         const route = await fetchRoute(currentLocation, waypoint);
-        allRouteCoordinates.push({
-          coordinates: route,
-          color: "#FF0000",
-        });
+        allRouteCoordinates.push({ coordinates: route, color: "#FF0000" });
         currentLocation = waypoint;
       }
 
       const finalRoute = await fetchRoute(currentLocation, endStation);
-      allRouteCoordinates.push({
-        coordinates: finalRoute,
-        color: "#00FF00",
-      });
+      allRouteCoordinates.push({ coordinates: finalRoute, color: "#00FF00" });
 
       setRouteCoordinates(allRouteCoordinates);
       setInfoMessage(`AI suggested to ${message}`);
-      setLoading(false);
     } catch (err) {
+      alert("Failed to fetch route suggestions. Please try again later.");
+    } finally {
       setLoading(false);
-      alert("Failed to fetch route suggestions", "Please try again later.");
     }
   };
 
@@ -222,13 +175,8 @@ const Map = () => {
     setCalculating(true);
     try {
       const route = await fetchRoute(userLocation, marker);
-      setRouteCoordinates([
-        {
-          coordinates: route,
-          color: "#FF0000",
-        },
-      ]);
-      setInfoMessage(`From your location -> ${marker.title}`);
+      setRouteCoordinates([{ coordinates: route, color: "#FF0000" }]);
+      setInfoMessage(`From your location to ${marker.title}`);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -249,7 +197,6 @@ const Map = () => {
   };
 
   if (error) return <ErrorMessage message={error} />;
-
   if (loading) return <Loading />;
 
   return (
@@ -261,9 +208,9 @@ const Map = () => {
         region={mapRegion}
         mapType={mapType}
       >
-        {bins.map((marker, index) => (
+        {bins.map((marker) => (
           <Marker
-            key={index}
+            key={marker.id}
             coordinate={{
               latitude: marker.latitude,
               longitude: marker.longitude,
@@ -271,23 +218,20 @@ const Map = () => {
             onPress={() => handleCalculateRouteToMarker(marker)}
           >
             <CustomMarker iconUri={binImage} size={52} />
-
             <Callout>
               <View style={styles.calloutContainer}>
-                <View>
-                  <FontAwesome name="building" size={40} color="green" />
-                </View>
+                <FontAwesome name="building" size={40} color="green" />
                 <View style={styles.calloutTextContainer}>
-                  <Text style={styles.calloutTitle}>{marker.title} </Text>
+                  <Text style={styles.calloutTitle}>{marker.title}</Text>
                 </View>
               </View>
             </Callout>
           </Marker>
         ))}
 
-        {stations.map((station, index) => (
+        {stations.map((station) => (
           <Marker
-            key={index}
+            key={station.id}
             coordinate={{
               latitude: station.latitude,
               longitude: station.longitude,
@@ -295,12 +239,9 @@ const Map = () => {
             onPress={() => handleCalculateRouteToMarker(station)}
           >
             <CustomMarker iconUri={binImage} size={52} />
-
             <Callout>
               <View style={styles.calloutContainer}>
-                <View>
-                  <FontAwesome name="building" size={60} color="red" />
-                </View>
+                <FontAwesome name="building" size={60} color="red" />
                 <View style={styles.calloutTextContainer}>
                   <Text style={styles.calloutTitle}>{station.title}</Text>
                 </View>
@@ -325,15 +266,15 @@ const Map = () => {
             />
           </Marker>
         )}
-        {routeCoordinates.length > 0 &&
-          routeCoordinates.map((segment, index) => (
-            <Polyline
-              key={index}
-              coordinates={segment.coordinates}
-              strokeColor={segment.color}
-              strokeWidth={4}
-            />
-          ))}
+
+        {routeCoordinates.map((segment, index) => (
+          <Polyline
+            key={index}
+            coordinates={segment.coordinates}
+            strokeColor={segment.color}
+            strokeWidth={4}
+          />
+        ))}
       </MapView>
       <View style={styles.buttonsContainer}>
         <Button
@@ -348,30 +289,28 @@ const Map = () => {
           Icon={FontAwesome6}
           onPress={handleCalculateRoutes}
           style={styles.mapButton}
-          name="route"
+          name="map"
           size={28}
           color="white"
         />
         <Button
-          Icon={MaterialCommunityIcons}
-          onPress={handleCancelCalculation}
-          style={styles.cancelButton}
-          name="map-marker-off"
-          size={28}
-          color="white"
-        />
-        <Button
-          Icon={MaterialCommunityIcons}
+          Icon={FontAwesome}
           onPress={handleToggleMapType}
           style={styles.mapButton}
-          name="map-outline"
+          name="map"
           size={28}
           color="white"
         />
       </View>
-      {infoMessage !== "" && (
-        <RouteSummary message={infoMessage} color={"#F24A4A"} />
+      {calculating && (
+        <View style={styles.overlay}>
+          <Text style={styles.overlayText}>Calculating...</Text>
+          <Button onPress={handleCancelCalculation} style={styles.cancelButton}>
+            Cancel
+          </Button>
+        </View>
       )}
+      {infoMessage && <RouteSummary message={infoMessage} />}
     </View>
   );
 };
@@ -383,43 +322,46 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
   },
-  calloutContainer: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    alignSelf: "flex-start",
-    maxWidth: 250,
-    maxHeight: 250,
-  },
-  calloutTextContainer: {
-    flexDirection: "column",
-    flexShrink: 1,
-  },
-  calloutTitle: {
-    color: "black",
-    fontWeight: "bold",
-    flexWrap: "wrap",
-  },
   buttonsContainer: {
-    width: "100%",
     position: "absolute",
-    bottom: 28,
-    left: 0,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-evenly",
+    bottom: 10,
+    right: 10,
+    flexDirection: "column",
   },
   mapButton: {
-    backgroundColor: "#00008B",
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    borderRadius: 20,
+    margin: 5,
     padding: 10,
-    borderRadius: 5,
-    marginHorizontal: 5,
+  },
+  overlay: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: [{ translateX: -100 }, { translateY: -50 }],
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    borderRadius: 10,
+    padding: 20,
+    alignItems: "center",
+  },
+  overlayText: {
+    color: "white",
+    fontSize: 18,
+    marginBottom: 10,
   },
   cancelButton: {
     backgroundColor: "#FF0000",
-    padding: 10,
-    borderRadius: 5,
-    marginHorizontal: 5,
+    color: "white",
+  },
+  calloutContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  calloutTextContainer: {
+    marginLeft: 10,
+  },
+  calloutTitle: {
+    fontWeight: "bold",
   },
 });
 

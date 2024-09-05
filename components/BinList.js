@@ -13,23 +13,30 @@ const BinList = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    const unsubscribe = onValue(dbRef, handleData);
+    const dbRef = ref(database, "trash-bin-database");
+    const handleData = (snapshot) => {
+      setLoading(true);
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        const bins = Object.keys(data).map((key) => ({
+          id: key,
+          ...data[key],
+        }));
+        setBinData(bins);
+        setError(null);
+      } else {
+        setError("No data found");
+      }
+      setLoading(false);
+    };
+
+    const unsubscribe = onValue(dbRef, handleData, (error) => {
+      setError("Error fetching data");
+      setLoading(false);
+    });
+
     return () => unsubscribe();
   }, []);
-
-  const dbRef = ref(database, "trash-bin-database");
-  const handleData = (snapshot) => {
-    setLoading(true);
-    if (snapshot.exists()) {
-      const data = snapshot.val();
-      const bins = Object.keys(data).map((key) => ({ id: key, ...data[key] }));
-      setBinData(bins);
-      setError(null);
-    } else {
-      setError("No data found");
-    }
-    setLoading(false);
-  };
 
   const handleLocationPress = (lat, lng, title) => {
     navigation.navigate("Map", {
@@ -46,17 +53,15 @@ const BinList = () => {
   }
 
   if (error) {
-    Alert.alert("Error", error, [
-      { text: "OK", onPress: () => setError(null) },
-    ]);
-    return null;
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
   }
 
   return (
     <ScrollView contentContainerStyle={styles.scrollView}>
-      {error && (
-        <Alert title="Error" message={error} onPress={() => setError(null)} />
-      )}
       {binData.length > 0 ? (
         binData.map((bin) => (
           <BinItems
@@ -68,7 +73,7 @@ const BinList = () => {
             firstValue={bin.fill}
             legends={[
               { text: `Level`, color: "orange" },
-              { text: `Empty`, color: "white"},
+              { text: `Empty`, color: "white" },
               { text: `Location`, color: "red" },
             ]}
             onLegendPress={() =>
@@ -92,6 +97,16 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     height: "100%",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
+  errorText: {
+    fontSize: 16,
+    color: "red",
   },
   noDataText: {
     fontSize: 16,
